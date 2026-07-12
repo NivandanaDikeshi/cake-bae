@@ -1,6 +1,18 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { db as firebaseDb } from "@/lib/firebase";
+const db = firebaseDb as any;
+import {
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  getDoc,
+  writeBatch
+} from "firebase/firestore";
 
 // Types
 export interface Product {
@@ -10,9 +22,9 @@ export interface Product {
   price: number; // LKR
   category: string;
   image: string;
-  sizes: string[]; // e.g., ["500g", "1kg", "1.5kg", "2kg"]
-  flavours: string[]; // e.g., ["Chocolate", "Vanilla", "Red Velvet", "Coffee"]
-  leadTime: string; // e.g., "48h"
+  sizes: string[];
+  flavours: string[];
+  leadTime: string;
   rating: number;
 }
 
@@ -30,7 +42,7 @@ export interface Order {
   customerPhone: string;
   customerEmail: string;
   deliveryAddress: string;
-  deliveryRegion: string; // e.g., "Colombo 1-15", "Rajagiriya", etc.
+  deliveryRegion: string;
   deliveryFee: number;
   deliveryDate: string;
   deliveryTime: string;
@@ -49,13 +61,13 @@ export interface Role {
   status: "Active" | "Inactive";
   isAdminPrivileges: boolean;
   permissions: {
-    dashboard: string[]; // e.g., ["read"]
-    products: string[]; // e.g., ["create", "read", "update", "delete"]
-    orders: string[]; // e.g., ["create", "read", "update", "delete"]
-    customers: string[]; // e.g., ["create", "read", "update", "delete"]
-    calendar: string[]; // e.g., ["create", "read", "update", "delete"]
-    roles: string[]; // e.g., ["create", "read", "update", "delete"]
-    reports: string[]; // e.g., ["read"]
+    dashboard: string[];
+    products: string[];
+    orders: string[];
+    customers: string[];
+    calendar: string[];
+    roles: string[];
+    reports: string[];
   };
   isSystem?: boolean;
   permissionCount: number;
@@ -86,20 +98,20 @@ interface StateContextType {
   clearCart: () => void;
   getCartTotal: () => number;
   // Product Actions
-  addProduct: (product: Omit<Product, "id">) => void;
-  updateProduct: (id: string, updatedProduct: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
+  addProduct: (product: Omit<Product, "id">) => Promise<void>;
+  updateProduct: (id: string, updatedProduct: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
   // Order Actions
-  placeOrder: (orderData: Omit<Order, "id" | "status" | "createdAt">) => Order;
-  updateOrderStatus: (id: string, status: Order["status"], paymentStatus?: Order["paymentStatus"]) => void;
+  placeOrder: (orderData: Omit<Order, "id" | "status" | "createdAt">) => Promise<Order>;
+  updateOrderStatus: (id: string, status: Order["status"], paymentStatus?: Order["paymentStatus"]) => Promise<void>;
   // Role Actions
-  addRole: (role: Omit<Role, "id" | "permissionCount">) => void;
-  updateRole: (id: string, updatedRole: Partial<Role>) => void;
-  deleteRole: (id: string) => void;
+  addRole: (role: Omit<Role, "id" | "permissionCount">) => Promise<void>;
+  updateRole: (id: string, updatedRole: Partial<Role>) => Promise<void>;
+  deleteRole: (id: string) => Promise<void>;
   // User Actions
-  addUser: (user: Omit<User, "id" | "createdAt">) => void;
-  updateUser: (id: string, updatedUser: Partial<User>) => void;
-  deleteUser: (id: string) => void;
+  addUser: (user: Omit<User, "id" | "createdAt">) => Promise<void>;
+  updateUser: (id: string, updatedUser: Partial<User>) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
   // Auth
   login: (email: string, roleName: string) => boolean;
   logout: () => void;
@@ -109,7 +121,8 @@ interface StateContextType {
   setCloudinaryConfig: (name: string, preset: string) => void;
   // Availability Block Out Dates
   blockedDates: string[];
-  toggleBlockedDate: (date: string) => void;
+  toggleBlockedDate: (date: string) => Promise<void>;
+  isFirebaseActive: boolean;
 }
 
 const StateContext = createContext<StateContextType | undefined>(undefined);
@@ -209,7 +222,7 @@ const initialRoles: Role[] = [
     status: "Active",
     isAdminPrivileges: true,
     isSystem: true,
-    permissionCount: 30, // Representing "All Permissions"
+    permissionCount: 30,
     permissions: {
       dashboard: ["read"],
       products: ["create", "read", "update", "delete"],
@@ -330,58 +343,25 @@ const initialOrders: Order[] = [
     customerPhone: "0771234567",
     customerEmail: "niwandikeshi@gmail.com",
     deliveryAddress: "No. 45, Flower Road, Colombo 07",
-    deliveryRegion: "Colombo 1-15",
+    deliveryRegion: "Colombo 1-15 (Fort, Borella, Havelock, etc.)",
     deliveryFee: 350,
-    deliveryDate: new Date(Date.now() + 86400000 * 2).toISOString().split("T")[0], // 2 days later
-    deliveryTime: "14:30",
+    deliveryDate: new Date(Date.now() + 86400000 * 2).toISOString().split("T")[0],
+    deliveryTime: "14:00",
     paymentMethod: "COD",
     paymentStatus: "Unpaid",
     orderNotes: "Please write 'Happy Birthday Niwan!' in pink icing.",
     items: [
       {
-        product: initialProducts[0], // Fudge
+        product: initialProducts[0],
         quantity: 1,
         selectedSize: "1kg",
         selectedFlavour: "Chocolate Fudge",
         customMessage: "Happy Birthday Niwan!"
       }
     ],
-    totalPrice: 4850, // 4500 + 350
+    totalPrice: 4850,
     status: "Confirmed",
-    createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-  },
-  {
-    id: "CB-1002",
-    customerName: "Minoli Perera",
-    customerPhone: "0719876543",
-    customerEmail: "minoli.p@outlook.com",
-    deliveryAddress: "No. 12A, Nawala Road, Rajagiriya",
-    deliveryRegion: "Rajagiriya",
-    deliveryFee: 250,
-    deliveryDate: new Date(Date.now() + 86400000).toISOString().split("T")[0], // Tomorrow
-    deliveryTime: "10:00",
-    paymentMethod: "Card",
-    paymentStatus: "Paid",
-    orderNotes: "Need it early morning. Thank you!",
-    items: [
-      {
-        product: initialProducts[3], // Cupcakes
-        quantity: 2,
-        selectedSize: "Box of 6",
-        selectedFlavour: "Assorted Mix",
-        customMessage: ""
-      },
-      {
-        product: initialProducts[4], // Bento
-        quantity: 1,
-        selectedSize: "Mini (approx. 350g)",
-        selectedFlavour: "Strawberry Cream",
-        customMessage: "Congrats Minoli!"
-      }
-    ],
-    totalPrice: 7850, // 2400*2 + 2800 + 250
-    status: "Baking/Decorating",
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
   }
 ];
 
@@ -398,48 +378,174 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [cloudinaryUploadPreset, setCloudinaryUploadPreset] = useState<string>("cakebae_unsigned");
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const isFirebaseActive = !!db;
 
-  // Load from local storage
+  // Load from database / local storage
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedProducts = localStorage.getItem("cb_products");
-      const storedOrders = localStorage.getItem("cb_orders");
-      const storedRoles = localStorage.getItem("cb_roles");
-      const storedUsers = localStorage.getItem("cb_users");
+    const loadState = async () => {
+      if (typeof window === "undefined") return;
+
       const storedCart = localStorage.getItem("cb_cart");
       const storedUser = localStorage.getItem("cb_currentUser");
-      const storedBlockedDates = localStorage.getItem("cb_blocked_dates");
       const storedCloudName = localStorage.getItem("cb_cloud_name");
       const storedPreset = localStorage.getItem("cb_upload_preset");
 
-      setProducts(storedProducts ? JSON.parse(storedProducts) : initialProducts);
-      setOrders(storedOrders ? JSON.parse(storedOrders) : initialOrders);
-      setRoles(storedRoles ? JSON.parse(storedRoles) : initialRoles);
-      setUsers(storedUsers ? JSON.parse(storedUsers) : initialUsers);
       setCart(storedCart ? JSON.parse(storedCart) : []);
-      setBlockedDates(storedBlockedDates ? JSON.parse(storedBlockedDates) : []);
-      
       if (storedCloudName) setCloudinaryCloudName(storedCloudName);
       if (storedPreset) setCloudinaryUploadPreset(storedPreset);
 
-      if (storedUser) {
-        const u = JSON.parse(storedUser) as User;
-        setCurrentUser(u);
-        const rolesList = storedRoles ? JSON.parse(storedRoles) : initialRoles;
-        const r = rolesList.find((role: Role) => role.id === u.roleId) || null;
-        setCurrentRole(r);
+      if (db) {
+        try {
+          // 1. Load Products from Firestore
+          const productsSnap = await getDocs(collection(db, "products"));
+          const productsData: Product[] = [];
+          productsSnap.forEach((doc) => {
+            productsData.push({ id: doc.id, ...doc.data() } as Product);
+          });
+          
+          // Seed database if empty
+          if (productsData.length === 0) {
+            console.log("Seeding Firestore products...");
+            const batch = writeBatch(db);
+            initialProducts.forEach((p) => {
+              const pRef = doc(collection(db, "products"), p.id);
+              batch.set(pRef, { ...p, id: undefined });
+            });
+            await batch.commit();
+            setProducts(initialProducts);
+          } else {
+            setProducts(productsData);
+          }
+
+          // 2. Load Roles from Firestore
+          const rolesSnap = await getDocs(collection(db, "roles"));
+          const rolesData: Role[] = [];
+          rolesSnap.forEach((doc) => {
+            rolesData.push({ id: doc.id, ...doc.data() } as Role);
+          });
+
+          if (rolesData.length === 0) {
+            console.log("Seeding Firestore roles...");
+            const batch = writeBatch(db);
+            initialRoles.forEach((r) => {
+              const rRef = doc(collection(db, "roles"), r.id);
+              batch.set(rRef, { ...r, id: undefined });
+            });
+            await batch.commit();
+            setRoles(initialRoles);
+          } else {
+            setRoles(rolesData);
+          }
+
+          // 3. Load Users from Firestore
+          const usersSnap = await getDocs(collection(db, "users"));
+          const usersData: User[] = [];
+          usersSnap.forEach((doc) => {
+            usersData.push({ id: doc.id, ...doc.data() } as User);
+          });
+
+          if (usersData.length === 0) {
+            const batch = writeBatch(db);
+            initialUsers.forEach((u) => {
+              const uRef = doc(collection(db, "users"), u.id);
+              batch.set(uRef, { ...u, id: undefined });
+            });
+            await batch.commit();
+            setUsers(initialUsers);
+          } else {
+            setUsers(usersData);
+          }
+
+          // 4. Load Orders from Firestore
+          const ordersSnap = await getDocs(collection(db, "orders"));
+          const ordersData: Order[] = [];
+          ordersSnap.forEach((doc) => {
+            ordersData.push({ id: doc.id, ...doc.data() } as Order);
+          });
+
+          if (ordersData.length === 0) {
+            const batch = writeBatch(db);
+            initialOrders.forEach((o) => {
+              const oRef = doc(collection(db, "orders"), o.id);
+              batch.set(oRef, { ...o, id: undefined });
+            });
+            await batch.commit();
+            setOrders(initialOrders);
+          } else {
+            setOrders(ordersData);
+          }
+
+          // 5. Load settings (Blocked Dates)
+          const settingsRef = doc(db, "settings", "blocked_dates");
+          const settingsSnap = await getDoc(settingsRef);
+          if (settingsSnap.exists()) {
+            setBlockedDates(settingsSnap.data().dates || []);
+          } else {
+            await setDoc(settingsRef, { dates: [] });
+            setBlockedDates([]);
+          }
+
+          // Handle Authentication Session binding
+          const activeRoles = rolesData.length > 0 ? rolesData : initialRoles;
+          const activeUsers = usersData.length > 0 ? usersData : initialUsers;
+
+          if (storedUser) {
+            const u = JSON.parse(storedUser) as User;
+            const liveUser = activeUsers.find((user) => user.id === u.id) || u;
+            setCurrentUser(liveUser);
+            const r = activeRoles.find((role: Role) => role.id === liveUser.roleId) || null;
+            setCurrentRole(r);
+          } else {
+            const defaultSuperAdmin = activeUsers[0];
+            setCurrentUser(defaultSuperAdmin);
+            const defaultRole = activeRoles.find((role: Role) => role.id === defaultSuperAdmin.roleId) || null;
+            setCurrentRole(defaultRole);
+          }
+        } catch (err) {
+          console.error("Firestore loading error. Falling back to localStorage.", err);
+          loadLocalStorage(storedUser, storedCart);
+        }
       } else {
-        // Log in default Super Admin for development convenience
-        const defaultSuperAdmin = (storedUsers ? JSON.parse(storedUsers) : initialUsers)[0];
-        setCurrentUser(defaultSuperAdmin);
-        const defaultRole = (storedRoles ? JSON.parse(storedRoles) : initialRoles).find((role: Role) => role.id === defaultSuperAdmin.roleId) || null;
-        setCurrentRole(defaultRole);
+        loadLocalStorage(storedUser, storedCart);
       }
       setIsLoaded(true);
-    }
+    };
+
+    loadState();
   }, []);
 
-  // Save changes helper
+  const loadLocalStorage = (storedUser: string | null, storedCart: string | null) => {
+    const storedProducts = localStorage.getItem("cb_products");
+    const storedOrders = localStorage.getItem("cb_orders");
+    const storedRoles = localStorage.getItem("cb_roles");
+    const storedUsers = localStorage.getItem("cb_users");
+    const storedBlockedDates = localStorage.getItem("cb_blocked_dates");
+
+    const localProducts = storedProducts ? JSON.parse(storedProducts) : initialProducts;
+    const localRoles = storedRoles ? JSON.parse(storedRoles) : initialRoles;
+    const localUsers = storedUsers ? JSON.parse(storedUsers) : initialUsers;
+
+    setProducts(localProducts);
+    setOrders(storedOrders ? JSON.parse(storedOrders) : initialOrders);
+    setRoles(localRoles);
+    setUsers(localUsers);
+    setBlockedDates(storedBlockedDates ? JSON.parse(storedBlockedDates) : []);
+
+    if (storedUser) {
+      const u = JSON.parse(storedUser) as User;
+      const liveUser = localUsers.find((user: User) => user.id === u.id) || u;
+      setCurrentUser(liveUser);
+      const r = localRoles.find((role: Role) => role.id === liveUser.roleId) || null;
+      setCurrentRole(r);
+    } else {
+      const defaultSuperAdmin = localUsers[0];
+      setCurrentUser(defaultSuperAdmin);
+      const defaultRole = localRoles.find((role: Role) => role.id === defaultSuperAdmin.roleId) || null;
+      setCurrentRole(defaultRole);
+    }
+  };
+
+  // Save helper for local storage fallback
   const saveToLocalStorage = (key: string, data: any) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(key, JSON.stringify(data));
@@ -493,36 +599,69 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Product actions
-  const addProduct = (pData: Omit<Product, "id">) => {
-    const newProduct: Product = {
-      ...pData,
-      id: "p" + (products.length + 1) + "_" + Math.random().toString(36).substr(2, 4),
-    };
+  const addProduct = async (pData: Omit<Product, "id">) => {
+    const id = "p_" + Math.random().toString(36).substr(2, 6);
+    const newProduct: Product = { ...pData, id };
+    
+    if (db) {
+      try {
+        await setDoc(doc(db, "products", id), { ...pData });
+      } catch (err) {
+        console.error("Firestore addProduct error:", err);
+      }
+    }
+
     const updated = [newProduct, ...products];
     setProducts(updated);
     saveToLocalStorage("cb_products", updated);
   };
 
-  const updateProduct = (id: string, updatedFields: Partial<Product>) => {
+  const updateProduct = async (id: string, updatedFields: Partial<Product>) => {
+    if (db) {
+      try {
+        await updateDoc(doc(db, "products", id), updatedFields);
+      } catch (err) {
+        console.error("Firestore updateProduct error:", err);
+      }
+    }
+
     const updated = products.map((p) => (p.id === id ? { ...p, ...updatedFields } : p));
     setProducts(updated);
     saveToLocalStorage("cb_products", updated);
   };
 
-  const deleteProduct = (id: string) => {
+  const deleteProduct = async (id: string) => {
+    if (db) {
+      try {
+        await deleteDoc(doc(db, "products", id));
+      } catch (err) {
+        console.error("Firestore deleteProduct error:", err);
+      }
+    }
+
     const updated = products.filter((p) => p.id !== id);
     setProducts(updated);
     saveToLocalStorage("cb_products", updated);
   };
 
   // Order actions
-  const placeOrder = (orderData: Omit<Order, "id" | "status" | "createdAt">) => {
+  const placeOrder = async (orderData: Omit<Order, "id" | "status" | "createdAt">) => {
+    const id = "CB-" + Math.floor(1000 + Math.random() * 9000);
     const newOrder: Order = {
       ...orderData,
-      id: "CB-" + Math.floor(1000 + Math.random() * 9000),
+      id,
       status: "Pending",
       createdAt: new Date().toISOString(),
     };
+
+    if (db) {
+      try {
+        await setDoc(doc(db, "orders", id), { ...newOrder, id: undefined });
+      } catch (err) {
+        console.error("Firestore placeOrder error:", err);
+      }
+    }
+
     const updated = [newOrder, ...orders];
     setOrders(updated);
     saveToLocalStorage("cb_orders", updated);
@@ -530,7 +669,20 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return newOrder;
   };
 
-  const updateOrderStatus = (id: string, status: Order["status"], paymentStatus?: Order["paymentStatus"]) => {
+  const updateOrderStatus = async (id: string, status: Order["status"], paymentStatus?: Order["paymentStatus"]) => {
+    const fieldsToUpdate = {
+      status,
+      ...(paymentStatus ? { paymentStatus } : {})
+    };
+
+    if (db) {
+      try {
+        await updateDoc(doc(db, "orders", id), fieldsToUpdate);
+      } catch (err) {
+        console.error("Firestore updateOrderStatus error:", err);
+      }
+    }
+
     const updated = orders.map((o) => {
       if (o.id === id) {
         return {
@@ -545,7 +697,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     saveToLocalStorage("cb_orders", updated);
   };
 
-  // Helper to count actions from permissions
+  // Helper count permissions
   const countPermissions = (perms: Role["permissions"]) => {
     let count = 0;
     Object.values(perms).forEach((list) => {
@@ -555,19 +707,36 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Role actions
-  const addRole = (roleData: Omit<Role, "id" | "permissionCount">) => {
+  const addRole = async (roleData: Omit<Role, "id" | "permissionCount">) => {
     const id = "r-" + roleData.name.toLowerCase().replace(/\s+/g, "");
     const newRole: Role = {
       ...roleData,
       id,
       permissionCount: countPermissions(roleData.permissions),
     };
+
+    if (db) {
+      try {
+        await setDoc(doc(db, "roles", id), { ...roleData, id: undefined });
+      } catch (err) {
+        console.error("Firestore addRole error:", err);
+      }
+    }
+
     const updated = [...roles, newRole];
     setRoles(updated);
     saveToLocalStorage("cb_roles", updated);
   };
 
-  const updateRole = (id: string, updatedRole: Partial<Role>) => {
+  const updateRole = async (id: string, updatedRole: Partial<Role>) => {
+    if (db) {
+      try {
+        await updateDoc(doc(db, "roles", id), updatedRole);
+      } catch (err) {
+        console.error("Firestore updateRole error:", err);
+      }
+    }
+
     const updated = roles.map((r) => {
       if (r.id === id) {
         const merged = { ...r, ...updatedRole };
@@ -581,17 +750,23 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setRoles(updated);
     saveToLocalStorage("cb_roles", updated);
 
-    // If current role changed, update it too
     if (currentUser && currentUser.roleId === id) {
       const activeRole = updated.find((r) => r.id === id) || null;
       setCurrentRole(activeRole);
     }
   };
 
-  const deleteRole = (id: string) => {
-    // Prevent deleting system roles
+  const deleteRole = async (id: string) => {
     const roleToDelete = roles.find((r) => r.id === id);
     if (roleToDelete?.isSystem) return;
+
+    if (db) {
+      try {
+        await deleteDoc(doc(db, "roles", id));
+      } catch (err) {
+        console.error("Firestore deleteRole error:", err);
+      }
+    }
 
     const updated = roles.filter((r) => r.id !== id);
     setRoles(updated);
@@ -599,18 +774,36 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // User actions
-  const addUser = (userData: Omit<User, "id" | "createdAt">) => {
+  const addUser = async (userData: Omit<User, "id" | "createdAt">) => {
+    const id = "u-" + (users.length + 1) + "_" + Math.random().toString(36).substr(2, 4);
     const newUser: User = {
       ...userData,
-      id: "u-" + (users.length + 1) + "_" + Math.random().toString(36).substr(2, 4),
+      id,
       createdAt: new Date().toISOString(),
     };
+
+    if (db) {
+      try {
+        await setDoc(doc(db, "users", id), { ...userData, createdAt: newUser.createdAt, id: undefined });
+      } catch (err) {
+        console.error("Firestore addUser error:", err);
+      }
+    }
+
     const updated = [...users, newUser];
     setUsers(updated);
     saveToLocalStorage("cb_users", updated);
   };
 
-  const updateUser = (id: string, updatedUser: Partial<User>) => {
+  const updateUser = async (id: string, updatedUser: Partial<User>) => {
+    if (db) {
+      try {
+        await updateDoc(doc(db, "users", id), updatedUser);
+      } catch (err) {
+        console.error("Firestore updateUser error:", err);
+      }
+    }
+
     const updated = users.map((u) => (u.id === id ? { ...u, ...updatedUser } : u));
     setUsers(updated);
     saveToLocalStorage("cb_users", updated);
@@ -625,7 +818,15 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const deleteUser = (id: string) => {
+  const deleteUser = async (id: string) => {
+    if (db) {
+      try {
+        await deleteDoc(doc(db, "users", id));
+      } catch (err) {
+        console.error("Firestore deleteUser error:", err);
+      }
+    }
+
     const updated = users.filter((u) => u.id !== id);
     setUsers(updated);
     saveToLocalStorage("cb_users", updated);
@@ -633,10 +834,8 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Auth actions
   const login = (email: string, roleName: string) => {
-    // Find or create mock user
     let user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
     if (!user) {
-      // Create a mock account for demonstration
       const matchedRole = roles.find((r) => r.name.toLowerCase() === roleName.toLowerCase()) || roles[0];
       const newUser: User = {
         id: "u_temp_" + Math.random().toString(36).substr(2, 4),
@@ -646,6 +845,17 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         status: "Active",
         createdAt: new Date().toISOString(),
       };
+      
+      if (db) {
+        setDoc(doc(db, "users", newUser.id), {
+          name: newUser.name,
+          email: newUser.email,
+          roleId: newUser.roleId,
+          status: newUser.status,
+          createdAt: newUser.createdAt
+        }).catch(err => console.error("Firestore quickRegister error:", err));
+      }
+
       setUsers([...users, newUser]);
       user = newUser;
     }
@@ -679,10 +889,19 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Block dates
-  const toggleBlockedDate = (date: string) => {
+  const toggleBlockedDate = async (date: string) => {
     const updated = blockedDates.includes(date)
       ? blockedDates.filter((d) => d !== date)
       : [...blockedDates, date];
+    
+    if (db) {
+      try {
+        await setDoc(doc(db, "settings", "blocked_dates"), { dates: updated });
+      } catch (err) {
+        console.error("Firestore toggleBlockedDate error:", err);
+      }
+    }
+
     setBlockedDates(updated);
     saveToLocalStorage("cb_blocked_dates", updated);
   };
@@ -725,6 +944,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setCloudinaryConfig,
         blockedDates,
         toggleBlockedDate,
+        isFirebaseActive
       }}
     >
       {children}

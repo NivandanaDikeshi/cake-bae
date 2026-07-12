@@ -39,7 +39,7 @@ export default function CheckoutPage() {
   // Minimum date should be tomorrow (24 hours prep)
   const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split("T")[0];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -62,7 +62,7 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      const order = placeOrder({
+      const order = await placeOrder({
         customerName: name,
         customerPhone: phone,
         customerEmail: email,
