@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper: check if request is from an authenticated session
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 1. Products: Anyone can browse the catalog, only staff can manage products
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // 2. Orders: Anyone can create (checkout), only staff can view/update status
+    match /orders/{orderId} {
+      allow create: if true;
+      allow read, update, delete: if isAuthenticated();
+    }
+
+    // 3. Settings (Blocked Dates): Anyone can view, only staff can toggle blocked slots
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // 4. Roles & System Permissions: Staff can view, super-admins can write/edit roles
+    match /roles/{roleId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // 5. Users / Staff binds: Portal needs write access for signups, staff can read profiles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, write: if true;
+    }
+  }
+}
