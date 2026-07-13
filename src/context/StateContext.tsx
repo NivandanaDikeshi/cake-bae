@@ -408,8 +408,9 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             console.log("Seeding Firestore products...");
             const batch = writeBatch(db);
             initialProducts.forEach((p) => {
-              const pRef = doc(collection(db, "products"), p.id);
-              batch.set(pRef, { ...p, id: undefined });
+              const { id, ...pData } = p;
+              const pRef = doc(collection(db, "products"), id);
+              batch.set(pRef, pData);
             });
             await batch.commit();
             setProducts(initialProducts);
@@ -428,8 +429,9 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             console.log("Seeding Firestore roles...");
             const batch = writeBatch(db);
             initialRoles.forEach((r) => {
-              const rRef = doc(collection(db, "roles"), r.id);
-              batch.set(rRef, { ...r, id: undefined });
+              const { id, ...rData } = r;
+              const rRef = doc(collection(db, "roles"), id);
+              batch.set(rRef, rData);
             });
             await batch.commit();
             setRoles(initialRoles);
@@ -447,8 +449,9 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           if (usersData.length === 0) {
             const batch = writeBatch(db);
             initialUsers.forEach((u) => {
-              const uRef = doc(collection(db, "users"), u.id);
-              batch.set(uRef, { ...u, id: undefined });
+              const { id, ...uData } = u;
+              const uRef = doc(collection(db, "users"), id);
+              batch.set(uRef, uData);
             });
             await batch.commit();
             setUsers(initialUsers);
@@ -466,8 +469,9 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           if (ordersData.length === 0) {
             const batch = writeBatch(db);
             initialOrders.forEach((o) => {
-              const oRef = doc(collection(db, "orders"), o.id);
-              batch.set(oRef, { ...o, id: undefined });
+              const { id, ...oData } = o;
+              const oRef = doc(collection(db, "orders"), id);
+              batch.set(oRef, oData);
             });
             await batch.commit();
             setOrders(initialOrders);
@@ -656,7 +660,8 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (db) {
       try {
-        await setDoc(doc(db, "orders", id), { ...newOrder, id: undefined });
+        const { id: _, ...orderDataToSave } = newOrder;
+        await setDoc(doc(db, "orders", id), orderDataToSave);
       } catch (err) {
         console.error("Firestore placeOrder error:", err);
       }
@@ -717,7 +722,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (db) {
       try {
-        await setDoc(doc(db, "roles", id), { ...roleData, id: undefined });
+        await setDoc(doc(db, "roles", id), { ...roleData });
       } catch (err) {
         console.error("Firestore addRole error:", err);
       }
@@ -784,7 +789,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (db) {
       try {
-        await setDoc(doc(db, "users", id), { ...userData, createdAt: newUser.createdAt, id: undefined });
+        await setDoc(doc(db, "users", id), { ...userData, createdAt: newUser.createdAt });
       } catch (err) {
         console.error("Firestore addUser error:", err);
       }
