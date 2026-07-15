@@ -36,7 +36,7 @@ export default function StoreFrontHome() {
     },
     {
       name: "Desserts",
-      description: "Fudgy brownies, cheesecakes & sweet bites",
+      description: "Teatime cakes, cheesecakes & sweet bites",
       count: "Freshly Baked",
       icon: "🍪",
       color: "bg-rose-50 border-rose-100 text-rose-600 hover:bg-rose-100/50"

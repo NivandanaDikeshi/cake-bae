@@ -27,6 +27,7 @@ export default function AdminRolesPage() {
   });
 
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleOpenAdd = () => {
     setEditingId(null);
@@ -82,7 +83,7 @@ export default function AdminRolesPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -98,13 +99,20 @@ export default function AdminRolesPage() {
       permissions
     };
 
-    if (editingId) {
-      updateRole(editingId, payload);
-    } else {
-      addRole(payload);
+    setIsSubmitting(true);
+    try {
+      if (editingId) {
+        await updateRole(editingId, payload);
+      } else {
+        await addRole(payload);
+      }
+      setIsOpen(false);
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong while saving the role. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsOpen(false);
   };
 
   return (
@@ -173,7 +181,7 @@ export default function AdminRolesPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-slate-500 font-bold">
-                    {role.isAdminPrivileges ? "All Permissions" : `${role.permissionCount} actions`}
+                    {role.isAdminPrivileges ? "All Permissions" : `${role.permissionCount ?? 0} actions`}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold border ${
@@ -360,15 +368,21 @@ export default function AdminRolesPage() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="px-4 py-2.5 border border-purple-100 text-slate-600 hover:bg-slate-50 font-bold rounded-xl text-xs transition"
+                disabled={isSubmitting}
+                className="px-4 py-2.5 border border-purple-100 text-slate-600 hover:bg-slate-50 font-bold rounded-xl text-xs transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-[#2F0538] hover:bg-[#4A1054] text-white font-bold rounded-xl text-xs shadow-md transition"
+                disabled={isSubmitting}
+                className="px-5 py-2.5 bg-[#2F0538] hover:bg-[#4A1054] text-white font-bold rounded-xl text-xs shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {editingId ? "Save Changes" : "Create Role"}
+                {isSubmitting
+                  ? "Saving..."
+                  : editingId
+                  ? "Save Changes"
+                  : "Create Role"}
               </button>
             </div>
           </form>

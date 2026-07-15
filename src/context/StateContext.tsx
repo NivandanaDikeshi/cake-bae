@@ -135,7 +135,7 @@ const initialProducts: Product[] = [
     description: "Rich layered chocolate sponge with luscious chocolate fudge and dark chocolate ganache drip. An all-time Sri Lankan favorite.",
     price: 4500,
     category: "Celebration Cakes",
-    image: "https://res.cloudinary.com/dzxuzqg5g/image/upload/v1700000000/chocolate_gateau.jpg",
+    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/chocolate_gateau.jpg",
     sizes: ["500g", "1kg", "1.5kg", "2kg"],
     flavours: ["Chocolate Fudge", "Double Chocolate", "Mocha Chocolate"],
     leadTime: "24 Hours",
@@ -147,7 +147,7 @@ const initialProducts: Product[] = [
     description: "Traditional Sri Lankan ribbon cake with moist, multi-colored layers sandwiched with rich butter cream icing.",
     price: 3600,
     category: "Celebration Cakes",
-    image: "https://res.cloudinary.com/dzxuzqg5g/image/upload/v1700000000/ribbon_cake.jpg",
+    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/ribbon_cake.jpg",
     sizes: ["500g", "1kg", "1.5kg", "2kg"],
     flavours: ["Vanilla & Almond", "Classic Buttercream"],
     leadTime: "24 Hours",
@@ -159,7 +159,7 @@ const initialProducts: Product[] = [
     description: "Stunning crimson velvet cake layers with smooth, velvety cream cheese frosting and sweet white chocolate crumbs.",
     price: 5200,
     category: "Celebration Cakes",
-    image: "https://res.cloudinary.com/dzxuzqg5g/image/upload/v1700000000/red_velvet.jpg",
+    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/red_velvet.jpg",
     sizes: ["1kg", "2kg"],
     flavours: ["Cream Cheese Velvet", "Chocolate Red Velvet"],
     leadTime: "48 Hours",
@@ -171,7 +171,7 @@ const initialProducts: Product[] = [
     description: "Box of 6 artisan cupcakes, including chocolate lava, red velvet cream cheese, and caramel vanilla crumble.",
     price: 2400,
     category: "Cupcakes",
-    image: "https://res.cloudinary.com/dzxuzqg5g/image/upload/v1700000000/cupcakes.jpg",
+    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/cupcakes.jpg",
     sizes: ["Box of 6", "Box of 12"],
     flavours: ["Assorted Mix", "All Chocolate", "All Red Velvet"],
     leadTime: "12 Hours",
@@ -183,7 +183,7 @@ const initialProducts: Product[] = [
     description: "Cute minimalist Korean-style bento cake. Perfect for birthdays and small celebrations. Includes customized text.",
     price: 2800,
     category: "Bento Cakes",
-    image: "https://res.cloudinary.com/dzxuzqg5g/image/upload/v1700000000/bento_cake.jpg",
+    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/bento_cake.jpg",
     sizes: ["Mini (approx. 350g)"],
     flavours: ["Chocolate Fudge", "Classic Vanilla", "Strawberry Cream"],
     leadTime: "24 Hours",
@@ -195,7 +195,7 @@ const initialProducts: Product[] = [
     description: "Rich, dense chocolate brownies with a crackly top, loaded with real dark chocolate chunks and roasted walnuts.",
     price: 2900,
     category: "Desserts",
-    image: "https://res.cloudinary.com/dzxuzqg5g/image/upload/v1700000000/brownies.jpg",
+    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/brownies.jpg",
     sizes: ["Tray of 9 pcs", "Tray of 16 pcs"],
     flavours: ["Double Chocolate Fudgy", "Salted Caramel Drizzle"],
     leadTime: "24 Hours",
@@ -207,7 +207,7 @@ const initialProducts: Product[] = [
     description: "Creamy baked cheesecake with a Lotus Biscoff biscuit crust, topped with generous speculoos cookie butter spread.",
     price: 980,
     category: "Desserts",
-    image: "https://res.cloudinary.com/dzxuzqg5g/image/upload/v1700000000/cheesecake.jpg",
+    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/cheesecake.jpg",
     sizes: ["Single Slice", "Whole Cake (1.5kg)"],
     flavours: ["Lotus Biscoff Cream", "Blueberry Baked Cheese"],
     leadTime: "24 Hours",
@@ -301,41 +301,7 @@ const initialRoles: Role[] = [
   }
 ];
 
-const initialUsers: User[] = [
-  {
-    id: "u-1",
-    name: "Savi Wijayalath",
-    email: "savi.wijayalath@cakebae.lk",
-    roleId: "r-superadmin",
-    status: "Active",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "u-2",
-    name: "Kasun Perera",
-    email: "kasun@cakebae.lk",
-    roleId: "r-admin",
-    status: "Active",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "u-3",
-    name: "Dilini Fernando",
-    email: "dilini@cakebae.lk",
-    roleId: "r-branchmanager",
-    status: "Active",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "u-4",
-    name: "Nimal Silva",
-    email: "nimal@cakebae.lk",
-    roleId: "r-operator",
-    status: "Active",
-    createdAt: new Date().toISOString(),
-  }
-];
-
+const initialUsers: User[] = []
 const initialOrders: Order[] = [
   {
     id: "CB-1001",

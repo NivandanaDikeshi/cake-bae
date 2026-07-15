@@ -3,7 +3,17 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingBag, Menu, X, User as UserIcon, LogOut, ChevronRight, Cake } from "lucide-react";
+import {
+  ShoppingBag,
+  Menu,
+  X,
+  User as UserIcon,
+  LogOut,
+  ChevronRight,
+  Cake,
+  LogIn,
+  UserPlus,
+} from "lucide-react";
 import { useAppState } from "@/context/StateContext";
 
 export const Header: React.FC = () => {
@@ -40,7 +50,6 @@ export const Header: React.FC = () => {
                   alt="Cake Bae"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    // Fallback if image fails
                     (e.target as HTMLImageElement).style.display = "none";
                   }}
                 />
@@ -73,7 +82,7 @@ export const Header: React.FC = () => {
           </nav>
 
           {/* Actions Section */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {/* Cart Link */}
             <Link
               href="/cart"
@@ -88,15 +97,14 @@ export const Header: React.FC = () => {
               )}
             </Link>
 
-            {/* Dashboard / Admin shortcut */}
             {currentUser ? (
-              <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200">
+              <div className="hidden sm:flex items-center gap-2">
                 <Link
                   href="/admin/dashboard"
-                  className="flex items-center gap-2 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 px-3.5 py-2 rounded-lg transition"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[#9D5CDB] px-3 py-2 rounded-lg hover:bg-slate-50 transition"
                 >
-                  <UserIcon className="w-3.5 h-3.5" />
-                  <span>Admin Dashboard</span>
+                  <UserIcon className="w-4 h-4" />
+                  <span>Account</span>
                 </Link>
                 <button
                   onClick={logout}
@@ -107,13 +115,26 @@ export const Header: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <Link
-                href="/admin/login"
-                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[#9D5CDB] px-3.5 py-2 rounded-lg hover:bg-slate-50 transition"
-              >
-                <span>Portal Login</span>
-                <ChevronRight className="w-3 h-3" />
-              </Link>
+              <div className="hidden sm:flex items-center gap-2">
+                {/* Login Button */}
+                <Link
+                  href="/login"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[#9D5CDB] px-3.5 py-2 rounded-lg hover:bg-slate-50 transition"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Login</span>
+                </Link>
+
+                {/* Register Button */}
+                <Link
+                  href="/register"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#9D5CDB] hover:bg-[#8a4bc9] px-4 py-2 rounded-lg transition shadow-sm"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Register</span>
+                </Link>
+
+              </div>
             )}
 
             {/* Mobile Menu Button */}
@@ -144,6 +165,7 @@ export const Header: React.FC = () => {
               {link.name}
             </Link>
           ))}
+
           <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
             {currentUser ? (
               <>
@@ -167,13 +189,24 @@ export const Header: React.FC = () => {
                 </button>
               </>
             ) : (
-              <Link
-                href="/admin/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center gap-2 w-full py-3 border border-slate-200 rounded-lg text-slate-700 text-sm font-semibold hover:bg-slate-50"
-              >
-                <span>Staff Portal Login</span>
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 w-full py-3 border border-slate-200 rounded-lg text-slate-700 text-sm font-semibold hover:bg-slate-50"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Login</span>
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-[#9D5CDB] text-white rounded-lg text-sm font-semibold hover:bg-[#8a4bc9]"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>Register</span>
+                </Link>
+              </>
             )}
           </div>
         </div>

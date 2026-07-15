@@ -15,6 +15,13 @@ export default function AdminLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (currentUser) {
+      router.push("/");
+    }
+  }, [currentUser, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -29,7 +36,7 @@ export default function AdminLoginPage() {
       const success = await login(email.trim(), password);
 
       if (success) {
-        router.push("/admin/dashboard");
+        router.push("/");
       } else {
         setError("Incorrect email or password. Please try again.");
       }
@@ -59,11 +66,11 @@ export default function AdminLoginPage() {
           </div>
 
           <h1 className="mt-5 text-3xl font-black text-[#2F0538]">
-            Staff Portal Login
+            User Login
           </h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            Sign in to access the Cake Bae Admin Dashboard.
+            Sign in to access the Cake Bae user Dashboard.
           </p>
         </div>
 
