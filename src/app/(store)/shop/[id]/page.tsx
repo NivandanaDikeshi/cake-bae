@@ -19,12 +19,24 @@ export default function ProductDetailsPage() {
   const [addedMessage, setAddedMessage] = useState(false);
 
   useEffect(() => {
-    if (id && products.length > 0) {
-      const found = products.find((p) => p.id === id);
-      if (found) {
-        setProduct(found);
-        if (found.sizes.length > 0) setSelectedSize(found.sizes[0]);
-        if (found.flavours.length > 0) setSelectedFlavour(found.flavours[0]);
+    console.log("Route ID:", id);
+    console.log("Products:", products);
+
+    if (!id || products.length === 0) return;
+
+    const found = products.find((p) => p.id === id);
+
+    console.log("Found Product:", found);
+
+    if (found) {
+      setProduct(found);
+
+      if (found.sizes.length > 0) {
+        setSelectedSize(found.sizes[0]);
+      }
+
+      if (found.flavours.length > 0) {
+        setSelectedFlavour(found.flavours[0]);
       }
     }
   }, [id, products]);

@@ -82,17 +82,17 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/#gallery" className="text-sm text-purple-200 hover:text-white transition-colors">
+                <Link href="/gallery" className="text-sm text-purple-200 hover:text-white transition-colors">
                   Our Gallery
                 </Link>
               </li>
               <li>
-                <Link href="/#about" className="text-sm text-purple-200 hover:text-white transition-colors">
+                <Link href="/about" className="text-sm text-purple-200 hover:text-white transition-colors">
                   Our Story
                 </Link>
               </li>
               <li>
-                <Link href="/#faq" className="text-sm text-purple-200 hover:text-white transition-colors">
+                <Link href="/faq" className="text-sm text-purple-200 hover:text-white transition-colors">
                   Delivery & FAQs
                 </Link>
               </li>
@@ -126,7 +126,7 @@ export const Footer: React.FC = () => {
           <p>© {new Date().getFullYear()} Cake Bae. All rights reserved.</p>
           <p className="flex items-center gap-1">
             Crafted with <Heart className="w-3.5 h-3.5 fill-[#f59e0b] text-[#f59e0b]" /> by{" "}
-            <span className="font-semibold text-white">Savi Wijayalath</span>
+            <span className="font-semibold text-white">Nivandana</span>
           </p>
         </div>
       </div>

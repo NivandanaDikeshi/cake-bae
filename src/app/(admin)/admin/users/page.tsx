@@ -16,6 +16,7 @@ export default function AdminUsersPage() {
   // Form fields
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [roleId, setRoleId] = useState(roles[0]?.id || "");
   const [status, setStatus] = useState<"Active" | "Inactive">("Active");
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +35,7 @@ export default function AdminUsersPage() {
     setEditingId(null);
     setName("");
     setEmail("");
+    setPassword("");
     setRoleId(roles[0]?.id || "");
     setStatus("Active");
     setError(null);
@@ -44,18 +46,24 @@ export default function AdminUsersPage() {
     setEditingId(user.id);
     setName(user.name);
     setEmail(user.email);
+    setPassword("");
     setRoleId(user.roleId);
     setStatus(user.status);
     setError(null);
     setIsOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     if (!name.trim() || !email.trim() || !roleId) {
       setError("Please fill out Name, Email, and select a Role.");
+      return;
+    }
+
+    if (!editingId && (!password || password.length < 6)) {
+      setError("Please enter a password of at least 6 characters for the new user.");
       return;
     }
 
@@ -66,13 +74,17 @@ export default function AdminUsersPage() {
       status
     };
 
-    if (editingId) {
-      updateUser(editingId, payload);
-    } else {
-      addUser(payload);
+    try {
+      if (editingId) {
+        await updateUser(editingId, payload);
+      } else {
+        await addUser(payload, password);
+      }
+      setIsOpen(false);
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message || "Failed to save user. Please check if email is valid and not already registered.");
     }
-
-    setIsOpen(false);
   };
 
   return (
@@ -217,6 +229,20 @@ export default function AdminUsersPage() {
                   className="w-full bg-white border border-purple-100 rounded-xl p-3 text-xs text-slate-800 focus:outline-none"
                 />
               </div>
+
+              {!editingId && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">Login Password *</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Enter password (min 6 characters)"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-white border border-purple-100 rounded-xl p-3 text-xs text-slate-800 focus:outline-none"
+                  />
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700">Assign Role Profile *</label>

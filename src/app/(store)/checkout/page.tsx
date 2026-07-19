@@ -16,7 +16,7 @@ const DELIVERY_REGIONS = [
 ];
 
 export default function CheckoutPage() {
-  const { cart, blockedDates, placeOrder, getCartTotal } = useAppState();
+  const { cart, blockedDates, placeOrder, getCartTotal, currentUser } = useAppState();
   const router = useRouter();
 
   // Form State
@@ -30,6 +30,16 @@ export default function CheckoutPage() {
   const [orderNotes, setOrderNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Prefill details from logged in user
+  React.useEffect(() => {
+    if (currentUser) {
+      if (currentUser.name) setName(currentUser.name);
+      if (currentUser.phone) setPhone(currentUser.phone);
+      if (currentUser.email) setEmail(currentUser.email);
+      if (currentUser.address) setAddress(currentUser.address);
+    }
+  }, [currentUser]);
 
   const subtotal = getCartTotal();
   const regionObj = DELIVERY_REGIONS.find((r) => r.name === selectedRegion) || DELIVERY_REGIONS[0];

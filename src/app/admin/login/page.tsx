@@ -7,13 +7,20 @@ import { Cake, User, Lock, ShieldAlert, ArrowLeft, ArrowRight } from "lucide-rea
 import { useAppState } from "@/context/StateContext";
 
 export default function AdminLoginPage() {
-  const { login, currentUser } = useAppState();
+  const { login, currentUser, currentRole, roles, logout } = useAppState();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Redirect to dashboard only if a validated staff/admin session already exists.
+  useEffect(() => {
+    if (currentUser && currentRole) {
+      router.push("/admin/dashboard");
+    }
+  }, [currentUser, currentRole, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,16 +33,22 @@ export default function AdminLoginPage() {
 
     setIsSubmitting(true);
     try {
-      const success = await login(email.trim(), password);
+      const loggedInUser = await login(email.trim(), password);
 
-      if (success) {
-        router.push("/admin/dashboard");
+      if (loggedInUser) {
+        const isStaff = roles.some((r) => r.id === loggedInUser.roleId);
+        if (isStaff) {
+          router.push("/admin/dashboard");
+        } else {
+          await logout();
+          setError("Access Denied: Customer accounts cannot log in to the Staff Portal.");
+        }
       } else {
         setError("Incorrect email or password. Please try again.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("Authentication error. Please try again.");
+      setError(err?.message || "Authentication failed. Please check your credentials.");
     } finally {
       setIsSubmitting(false);
     }
@@ -63,7 +76,7 @@ export default function AdminLoginPage() {
           </h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            Sign in to access the Cake Bae Admin Dashboard.
+            Sign in to access the Cake Bae Admin Dashboard. Customer accounts cannot log in here.
           </p>
         </div>
 

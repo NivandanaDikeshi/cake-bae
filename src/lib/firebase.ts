@@ -19,4 +19,15 @@ const app = getApps().length
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
-console.log("🔥 Firebase Connected");
+// TEMPORARY DEBUG LOGGING — remove once the login issue is resolved.
+// This only logs the projectId/authDomain (never the API key value itself
+// isn't sensitive, but we still avoid dumping the whole object needlessly)
+// so you can confirm the browser is actually using the project you expect.
+if (typeof window !== "undefined") {
+  console.log("🔥 Firebase Connected — runtime config check:", {
+    projectId: firebaseConfig.projectId || "❌ EMPTY — env var not loaded",
+    authDomain: firebaseConfig.authDomain || "❌ EMPTY — env var not loaded",
+    apiKeyPresent: firebaseConfig.apiKey ? "✅ present" : "❌ EMPTY — env var not loaded",
+    appId: firebaseConfig.appId || "❌ EMPTY — env var not loaded",
+  });
+}

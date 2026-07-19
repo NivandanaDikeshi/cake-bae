@@ -117,13 +117,6 @@ export default function AdminRolesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb & Header */}
-      <div className="text-xs text-slate-500 font-semibold flex items-center gap-1.5">
-        <span>FMS</span>
-        <span>&gt;</span>
-        <span>Roles</span>
-      </div>
-
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-800">Roles & Permissions</h1>

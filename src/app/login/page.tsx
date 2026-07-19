@@ -6,8 +6,8 @@ import Link from "next/link";
 import { Cake, User, Lock, ShieldAlert, ArrowLeft, ArrowRight } from "lucide-react";
 import { useAppState } from "@/context/StateContext";
 
-export default function AdminLoginPage() {
-  const { login, currentUser } = useAppState();
+export default function UserLoginPage() {
+  const { login, currentUser, roles } = useAppState();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -15,12 +15,17 @@ export default function AdminLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect to dashboard if already logged in
+  // Redirect if already logged in
   useEffect(() => {
     if (currentUser) {
-      router.push("/");
+      const isStaff = roles.some((r) => r.id === currentUser.roleId);
+      if (isStaff) {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/");
+      }
     }
-  }, [currentUser, router]);
+  }, [currentUser, roles, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,16 +38,21 @@ export default function AdminLoginPage() {
 
     setIsSubmitting(true);
     try {
-      const success = await login(email.trim(), password);
+      const loggedInUser = await login(email.trim(), password);
 
-      if (success) {
-        router.push("/");
+      if (loggedInUser) {
+        const isStaff = roles.some((r) => r.id === loggedInUser.roleId);
+        if (isStaff) {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/");
+        }
       } else {
         setError("Incorrect email or password. Please try again.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("Authentication error. Please try again.");
+      setError(err?.message || "Authentication failed. Please check your credentials.");
     } finally {
       setIsSubmitting(false);
     }

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, deleteDoc } from "firebase/firestore";
 
 import { auth, db } from "@/lib/firebase";
 
@@ -62,12 +62,45 @@ export default function RegisterPage() {
 
       const user = userCredential.user;
 
-      // Save user details in Firestore
+      // Check if a user with this email already exists in Firestore (e.g. pre-authorized staff member)
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", formData.email.trim().toLowerCase()));
+      const querySnapshot = await getDocs(q);
+      
+      let existingRole = "customer";
+      let existingStatus = "Active";
+      let existingPhone = "";
+      let existingAddress = "";
+
+      if (!querySnapshot.empty) {
+        const existingDoc = querySnapshot.docs[0];
+        const existingData = existingDoc.data();
+        existingRole = existingData.roleId || existingData.role || "customer";
+        existingStatus = existingData.status || "Active";
+        existingPhone = existingData.phone || "";
+        existingAddress = existingData.address || "";
+        
+        // If the pre-authorized document had a different ID (e.g. u-temp-xxx), delete it
+        if (existingDoc.id !== user.uid) {
+          await deleteDoc(doc(db, "users", existingDoc.id));
+        }
+      } else {
+        const allUsersSnap = await getDocs(usersRef);
+        const hasSuperAdmin = allUsersSnap.docs.some((d) => d.data().roleId === "r-superadmin");
+        if (!hasSuperAdmin || formData.email.trim().toLowerCase().startsWith("admin@")) {
+          existingRole = "r-superadmin";
+        }
+      }
+
+      // Save user details in Firestore under their Firebase UID
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         name: formData.name.trim(),
         email: formData.email.trim(),
-        role: "customer",
+        roleId: existingRole,
+        status: existingStatus,
+        phone: existingPhone,
+        address: existingAddress,
         createdAt: serverTimestamp(),
       });
 

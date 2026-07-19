@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { db as firebaseDb } from "@/lib/firebase";
+import { db as firebaseDb, auth } from "@/lib/firebase";
 const db = firebaseDb as any;
 import {
   collection,
@@ -13,6 +13,7 @@ import {
   getDoc,
   writeBatch
 } from "firebase/firestore";
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 
 // Types
 export interface Product {
@@ -38,6 +39,7 @@ export interface CartItem {
 
 export interface Order {
   id: string;
+  userId?: string;
   customerName: string;
   customerPhone: string;
   customerEmail: string;
@@ -80,6 +82,9 @@ export interface User {
   roleId: string;
   status: "Active" | "Inactive";
   createdAt: string;
+  phone?: string;
+  address?: string;
+  photoURL?: string;
 }
 
 interface StateContextType {
@@ -104,17 +109,18 @@ interface StateContextType {
   // Order Actions
   placeOrder: (orderData: Omit<Order, "id" | "status" | "createdAt">) => Promise<Order>;
   updateOrderStatus: (id: string, status: Order["status"], paymentStatus?: Order["paymentStatus"]) => Promise<void>;
+  refreshOrders: () => Promise<void>;
   // Role Actions
   addRole: (role: Omit<Role, "id" | "permissionCount">) => Promise<void>;
   updateRole: (id: string, updatedRole: Partial<Role>) => Promise<void>;
   deleteRole: (id: string) => Promise<void>;
   // User Actions
-  addUser: (user: Omit<User, "id" | "createdAt">) => Promise<void>;
+  addUser: (user: Omit<User, "id" | "createdAt">, password?: string) => Promise<void>;
   updateUser: (id: string, updatedUser: Partial<User>) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
   // Auth
-  login: (email: string, roleName: string) => boolean;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<User | null>;
+  logout: () => Promise<void>;
   // Settings/Cloudinary
   cloudinaryCloudName: string;
   cloudinaryUploadPreset: string;
@@ -128,92 +134,7 @@ interface StateContextType {
 const StateContext = createContext<StateContextType | undefined>(undefined);
 
 // Initial mock data
-const initialProducts: Product[] = [
-  {
-    id: "p1",
-    name: "Chocolate Fudge Gateau",
-    description: "Rich layered chocolate sponge with luscious chocolate fudge and dark chocolate ganache drip. An all-time Sri Lankan favorite.",
-    price: 4500,
-    category: "Celebration Cakes",
-    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/chocolate_gateau.jpg",
-    sizes: ["500g", "1kg", "1.5kg", "2kg"],
-    flavours: ["Chocolate Fudge", "Double Chocolate", "Mocha Chocolate"],
-    leadTime: "24 Hours",
-    rating: 4.9,
-  },
-  {
-    id: "p2",
-    name: "Classic Ribbon Cake",
-    description: "Traditional Sri Lankan ribbon cake with moist, multi-colored layers sandwiched with rich butter cream icing.",
-    price: 3600,
-    category: "Celebration Cakes",
-    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/ribbon_cake.jpg",
-    sizes: ["500g", "1kg", "1.5kg", "2kg"],
-    flavours: ["Vanilla & Almond", "Classic Buttercream"],
-    leadTime: "24 Hours",
-    rating: 4.8,
-  },
-  {
-    id: "p3",
-    name: "Red Velvet Dream",
-    description: "Stunning crimson velvet cake layers with smooth, velvety cream cheese frosting and sweet white chocolate crumbs.",
-    price: 5200,
-    category: "Celebration Cakes",
-    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/red_velvet.jpg",
-    sizes: ["1kg", "2kg"],
-    flavours: ["Cream Cheese Velvet", "Chocolate Red Velvet"],
-    leadTime: "48 Hours",
-    rating: 5.0,
-  },
-  {
-    id: "p4",
-    name: "Assorted Cupcake Box",
-    description: "Box of 6 artisan cupcakes, including chocolate lava, red velvet cream cheese, and caramel vanilla crumble.",
-    price: 2400,
-    category: "Cupcakes",
-    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/cupcakes.jpg",
-    sizes: ["Box of 6", "Box of 12"],
-    flavours: ["Assorted Mix", "All Chocolate", "All Red Velvet"],
-    leadTime: "12 Hours",
-    rating: 4.7,
-  },
-  {
-    id: "p5",
-    name: "Korean Bento Box Cake",
-    description: "Cute minimalist Korean-style bento cake. Perfect for birthdays and small celebrations. Includes customized text.",
-    price: 2800,
-    category: "Bento Cakes",
-    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/bento_cake.jpg",
-    sizes: ["Mini (approx. 350g)"],
-    flavours: ["Chocolate Fudge", "Classic Vanilla", "Strawberry Cream"],
-    leadTime: "24 Hours",
-    rating: 4.9,
-  },
-  {
-    id: "p6",
-    name: "Double Fudgy Brownie Tray",
-    description: "Rich, dense chocolate brownies with a crackly top, loaded with real dark chocolate chunks and roasted walnuts.",
-    price: 2900,
-    category: "Desserts",
-    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/brownies.jpg",
-    sizes: ["Tray of 9 pcs", "Tray of 16 pcs"],
-    flavours: ["Double Chocolate Fudgy", "Salted Caramel Drizzle"],
-    leadTime: "24 Hours",
-    rating: 4.8,
-  },
-  {
-    id: "p7",
-    name: "Lotus Biscoff Cheesecake Slice",
-    description: "Creamy baked cheesecake with a Lotus Biscoff biscuit crust, topped with generous speculoos cookie butter spread.",
-    price: 980,
-    category: "Desserts",
-    image: "https://res.cloudinary.com/deaitip2j/image/upload/v1700000000/cheesecake.jpg",
-    sizes: ["Single Slice", "Whole Cake (1.5kg)"],
-    flavours: ["Lotus Biscoff Cream", "Blueberry Baked Cheese"],
-    leadTime: "24 Hours",
-    rating: 4.9,
-  }
-];
+const initialProducts: Product[] = [];
 
 const initialRoles: Role[] = [
   {
@@ -301,35 +222,8 @@ const initialRoles: Role[] = [
   }
 ];
 
-const initialUsers: User[] = []
-const initialOrders: Order[] = [
-  {
-    id: "CB-1001",
-    customerName: "Niwan Dikeshi",
-    customerPhone: "0771234567",
-    customerEmail: "niwandikeshi@gmail.com",
-    deliveryAddress: "No. 45, Flower Road, Colombo 07",
-    deliveryRegion: "Colombo 1-15 (Fort, Borella, Havelock, etc.)",
-    deliveryFee: 350,
-    deliveryDate: new Date(Date.now() + 86400000 * 2).toISOString().split("T")[0],
-    deliveryTime: "14:00",
-    paymentMethod: "COD",
-    paymentStatus: "Unpaid",
-    orderNotes: "Please write 'Happy Birthday Niwan!' in pink icing.",
-    items: [
-      {
-        product: initialProducts[0],
-        quantity: 1,
-        selectedSize: "1kg",
-        selectedFlavour: "Chocolate Fudge",
-        customMessage: "Happy Birthday Niwan!"
-      }
-    ],
-    totalPrice: 4850,
-    status: "Confirmed",
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  }
-];
+const initialUsers: User[] = [];
+const initialOrders: Order[] = [];
 
 export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -345,6 +239,33 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const isFirebaseActive = !!db;
+
+  // Re-fetch orders from Firestore (or localStorage fallback) on demand.
+  // This is critical to call right after login/auth-state resolves, because
+  // the initial page-load fetch can run before auth is ready (and can be
+  // blocked by Firestore rules that require auth to read "orders"), and it
+  // never re-runs on its own when a different user logs in.
+  const refreshOrders = async () => {
+    if (db) {
+      try {
+        const ordersSnap = await getDocs(collection(db, "orders"));
+        const ordersData: Order[] = [];
+        ordersSnap.forEach((docSnap) => {
+          ordersData.push({ id: docSnap.id, ...docSnap.data() } as Order);
+        });
+        setOrders(ordersData);
+        saveToLocalStorage("cb_orders", ordersData);
+        return;
+      } catch (err) {
+        console.error("Firestore refreshOrders error. Falling back to localStorage.", err);
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      const storedOrders = localStorage.getItem("cb_orders");
+      setOrders(storedOrders ? JSON.parse(storedOrders) : initialOrders);
+    }
+  };
 
   // Load from database / local storage
   useEffect(() => {
@@ -426,6 +347,11 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }
 
           // 4. Load Orders from Firestore
+          // NOTE: this may run before Firebase Auth has resolved, and may be
+          // blocked entirely by security rules that require auth to read
+          // "orders". We deliberately do NOT treat this as the single source
+          // of truth for orders — refreshOrders() is called again once auth
+          // state is known (see the onAuthStateChanged effect below and login()).
           const ordersSnap = await getDocs(collection(db, "orders"));
           const ordersData: Order[] = [];
           ordersSnap.forEach((doc) => {
@@ -466,10 +392,8 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             const r = activeRoles.find((role: Role) => role.id === liveUser.roleId) || null;
             setCurrentRole(r);
           } else {
-            const defaultSuperAdmin = activeUsers[0];
-            setCurrentUser(defaultSuperAdmin);
-            const defaultRole = activeRoles.find((role: Role) => role.id === defaultSuperAdmin.roleId) || null;
-            setCurrentRole(defaultRole);
+            setCurrentUser(null);
+            setCurrentRole(null);
           }
         } catch (err) {
           console.error("Firestore loading error. Falling back to localStorage.", err);
@@ -483,6 +407,74 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     loadState();
   }, []);
+
+  // Listen to Firebase Auth state changes
+  useEffect(() => {
+    if (!auth) return;
+
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const userDocSnap = await getDoc(doc(db, "users", firebaseUser.uid));
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            const u: User = {
+              id: firebaseUser.uid,
+              name: userData.name || firebaseUser.displayName || firebaseUser.email?.split("@")[0].toUpperCase() || "",
+              email: firebaseUser.email || "",
+              roleId: userData.roleId || userData.role || "customer",
+              status: userData.status || "Active",
+              createdAt: userData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+              phone: userData.phone || "",
+              address: userData.address || "",
+            };
+
+            if (u.status === "Inactive") {
+              await signOut(auth);
+              setCurrentUser(null);
+              setCurrentRole(null);
+              localStorage.removeItem("cb_currentUser");
+              return;
+            }
+
+            setCurrentUser(u);
+            const r = roles.find((role) => role.id === u.roleId) || null;
+            setCurrentRole(r);
+            localStorage.setItem("cb_currentUser", JSON.stringify(u));
+          } else {
+            // Fallback for user without firestore doc
+            const u: User = {
+              id: firebaseUser.uid,
+              name: firebaseUser.displayName || firebaseUser.email?.split("@")[0].toUpperCase() || "",
+              email: firebaseUser.email || "",
+              roleId: "customer",
+              status: "Active",
+              createdAt: new Date().toISOString(),
+            };
+            setCurrentUser(u);
+            setCurrentRole(null);
+            localStorage.setItem("cb_currentUser", JSON.stringify(u));
+          }
+
+          // IMPORTANT: re-fetch orders now that we know who's logged in.
+          // Fixes orders not appearing after switching accounts, and cases
+          // where the initial load ran before auth (or was blocked by rules).
+          await refreshOrders();
+        } catch (err) {
+          console.error("Error syncing auth state changes:", err);
+        }
+      } else {
+        setCurrentUser(null);
+        setCurrentRole(null);
+        localStorage.removeItem("cb_currentUser");
+        // Also refresh on logout, in case rules allow public read of some orders
+        // (e.g. guest checkout lookups) — keeps state consistent either way.
+        await refreshOrders();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [roles]);
 
   const loadLocalStorage = (storedUser: string | null, storedCart: string | null) => {
     const storedProducts = localStorage.getItem("cb_products");
@@ -508,10 +500,8 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const r = localRoles.find((role: Role) => role.id === liveUser.roleId) || null;
       setCurrentRole(r);
     } else {
-      const defaultSuperAdmin = localUsers[0];
-      setCurrentUser(defaultSuperAdmin);
-      const defaultRole = localRoles.find((role: Role) => role.id === defaultSuperAdmin.roleId) || null;
-      setCurrentRole(defaultRole);
+      setCurrentUser(null);
+      setCurrentRole(null);
     }
   };
 
@@ -622,6 +612,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       id,
       status: "Pending",
       createdAt: new Date().toISOString(),
+      userId: currentUser?.id,
     };
 
     if (db) {
@@ -745,17 +736,57 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // User actions
-  const addUser = async (userData: Omit<User, "id" | "createdAt">) => {
-    const id = "u-" + (users.length + 1) + "_" + Math.random().toString(36).substr(2, 4);
+  const addUser = async (userData: Omit<User, "id" | "createdAt">, password?: string) => {
+    let finalId = "u-" + (users.length + 1) + "_" + Math.random().toString(36).substr(2, 4);
+
+    if (password && auth) {
+      try {
+        const firebaseConfig = {
+          apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
+          authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "",
+          projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
+          storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "",
+          messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "",
+          appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
+        };
+        const { initializeApp, deleteApp } = await import("firebase/app");
+        const { getAuth, createUserWithEmailAndPassword } = await import("firebase/auth");
+        
+        const secondaryAppName = "secondary_auth_app_" + Math.random().toString(36).substr(2, 6);
+        const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
+        const secondaryAuth = getAuth(secondaryApp);
+        
+        const userCredential = await createUserWithEmailAndPassword(
+          secondaryAuth,
+          userData.email.trim(),
+          password
+        );
+        
+        finalId = userCredential.user.uid;
+        await deleteApp(secondaryApp);
+      } catch (err) {
+        console.error("Firebase Auth staff creation error:", err);
+        throw err;
+      }
+    }
+
     const newUser: User = {
       ...userData,
-      id,
+      id: finalId,
       createdAt: new Date().toISOString(),
     };
 
     if (db) {
       try {
-        await setDoc(doc(db, "users", id), { ...userData, createdAt: newUser.createdAt });
+        await setDoc(doc(db, "users", finalId), {
+          name: newUser.name,
+          email: newUser.email,
+          roleId: newUser.roleId,
+          status: newUser.status,
+          createdAt: newUser.createdAt,
+          phone: newUser.phone || "",
+          address: newUser.address || "",
+        });
       } catch (err) {
         console.error("Firestore addUser error:", err);
       }
@@ -804,44 +835,116 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Auth actions
-  const login = (email: string, roleName: string) => {
-    let user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (!user) {
-      const matchedRole = roles.find((r) => r.name.toLowerCase() === roleName.toLowerCase()) || roles[0];
-      const newUser: User = {
-        id: "u_temp_" + Math.random().toString(36).substr(2, 4),
-        name: email.split("@")[0].toUpperCase(),
-        email,
-        roleId: matchedRole.id,
-        status: "Active",
-        createdAt: new Date().toISOString(),
-      };
-      
-      if (db) {
-        setDoc(doc(db, "users", newUser.id), {
+  //
+  // NOTE: this function ONLY signs in against an existing Firebase Auth
+  // account. It must never silently create accounts on a failed sign-in —
+  // a previous version of this function did that (auto-provisioning a new
+  // Firebase Auth user, and even granting Super Admin, whenever sign-in
+  // failed and certain email/role conditions were met). That was a serious
+  // privilege-escalation and account-hijacking risk and has been removed.
+  // Use addUser() (admin-initiated) or the forgot-password flow to create
+  // or recover accounts instead.
+  const login = async (email: string, password: string) => {
+    if (!auth) {
+      // Offline fallback: check in local state
+      let user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+      if (!user) return null;
+      setCurrentUser(user);
+      const r = roles.find((role) => role.id === user.roleId) || null;
+      setCurrentRole(r);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cb_currentUser", JSON.stringify(user));
+      }
+      await refreshOrders();
+      return user;
+    }
+
+    try {
+      // 1. Sign in with Firebase Auth — no fallback account creation.
+      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+      const firebaseUser = userCredential.user;
+
+      // 2. Fetch user profile from Firestore
+      const userDocRef = doc(db, "users", firebaseUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        const loggedInUser: User = {
+          id: firebaseUser.uid,
+          name: userData.name || firebaseUser.displayName || email.split("@")[0].toUpperCase(),
+          email: firebaseUser.email || email,
+          roleId: userData.roleId || userData.role || "customer",
+          status: userData.status || "Active",
+          createdAt: userData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          phone: userData.phone || "",
+          address: userData.address || "",
+        };
+
+        if (loggedInUser.status === "Inactive") {
+          await signOut(auth);
+          throw new Error("Your account is inactive. Please contact support.");
+        }
+
+        setCurrentUser(loggedInUser);
+        const r = roles.find((role) => role.id === loggedInUser.roleId) || null;
+        setCurrentRole(r);
+
+        if (typeof window !== "undefined") {
+          localStorage.setItem("cb_currentUser", JSON.stringify(loggedInUser));
+        }
+
+        // Re-fetch orders now that we know who's logged in, so their order
+        // history shows up immediately instead of waiting on a stale list.
+        await refreshOrders();
+
+        return loggedInUser;
+      } else {
+        // Firebase Auth user exists but has no matching Firestore profile.
+        // Create a minimal customer profile so the app has something to
+        // work with — this does NOT grant any elevated role.
+        const newUser: User = {
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName || email.split("@")[0].toUpperCase(),
+          email: firebaseUser.email || email,
+          roleId: "customer",
+          status: "Active",
+          createdAt: new Date().toISOString(),
+        };
+
+        await setDoc(userDocRef, {
           name: newUser.name,
           email: newUser.email,
           roleId: newUser.roleId,
           status: newUser.status,
-          createdAt: newUser.createdAt
-        }).catch(err => console.error("Firestore quickRegister error:", err));
+          createdAt: new Date(),
+        });
+
+        setCurrentUser(newUser);
+        setCurrentRole(null);
+
+        if (typeof window !== "undefined") {
+          localStorage.setItem("cb_currentUser", JSON.stringify(newUser));
+        }
+
+        await refreshOrders();
+
+        return newUser;
       }
-
-      setUsers([...users, newUser]);
-      user = newUser;
+    } catch (err) {
+      console.error("Firebase Login Error:", err);
+      throw err;
     }
-
-    setCurrentUser(user);
-    const r = roles.find((role) => role.id === user!.roleId) || null;
-    setCurrentRole(r);
-    
-    if (typeof window !== "undefined") {
-      localStorage.setItem("cb_currentUser", JSON.stringify(user));
-    }
-    return true;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    if (auth) {
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.error("Firebase SignOut Error:", err);
+      }
+    }
     setCurrentUser(null);
     setCurrentRole(null);
     if (typeof window !== "undefined") {
@@ -902,6 +1005,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         deleteProduct,
         placeOrder,
         updateOrderStatus,
+        refreshOrders,
         addRole,
         updateRole,
         deleteRole,
