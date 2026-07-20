@@ -12,8 +12,9 @@ export default function CartPage() {
 
   if (cart.length === 0) {
     return (
+      <div className="min-h-screen bg-[#F6F1FE]">
       <div className="mx-auto max-w-2xl px-4 py-24 sm:px-6 lg:px-8 text-center space-y-6 font-sans">
-        <div className="w-20 h-20 bg-[#F0E8FD] rounded-full flex items-center justify-center mx-auto text-[#8B5CF6]">
+        <div className="w-20 h-20 bg-[#F0E8FD] rounded-full flex items-center justify-center mx-auto text-[#8B5CF6] ring-8 ring-[#F6F1FE]">
           <ShoppingBag className="w-10 h-10" />
         </div>
         <div className="space-y-2">
@@ -24,20 +25,27 @@ export default function CartPage() {
         </div>
         <Link
           href="/shop"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold text-sm rounded-xl shadow-md transition"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#7C3AED] to-[#8B5CF6] hover:from-[#6D28D9] hover:to-[#7C3AED] text-white font-semibold text-sm rounded-xl shadow-md shadow-[#7C3AED]/20 transition duration-300 hover:-translate-y-0.5"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Browse Cakes Catalog</span>
         </Link>
       </div>
+      </div>
     );
   }
 
   return (
+    <div className="min-h-screen bg-[#F6F1FE]">
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 font-sans">
-      <h1 className="font-display text-3xl font-bold text-[#241436] tracking-tight mb-10">
-        Your Order Cart
-      </h1>
+      <div className="mb-10">
+        <h1 className="font-display text-3xl font-bold text-[#241436] tracking-tight">
+          Your Order Cart
+        </h1>
+        <p className="mt-1.5 text-sm text-[#6B6178]">
+          {cart.length} item{cart.length === 1 ? "" : "s"} ready for checkout
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left: Cart Items List */}
@@ -45,11 +53,11 @@ export default function CartPage() {
           {cart.map((item, idx) => (
             <div
               key={idx}
-              className="bg-white border border-[#E7DBFB] rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row gap-5 items-center justify-between"
+              className="bg-white border border-[#E7DBFB] rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-[#D8C4F7] transition-all duration-300 flex flex-col sm:flex-row gap-5 items-center justify-between"
             >
               {/* Product Info */}
               <div className="flex gap-4 items-center w-full sm:w-auto">
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-[#F6F1FE] flex-shrink-0 border border-[#F0E8FD]">
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-white flex-shrink-0 border border-[#F0E8FD] ring-1 ring-transparent hover:ring-[#D8C4F7] transition">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={item.product.image}
@@ -60,7 +68,7 @@ export default function CartPage() {
                     }}
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <h3 className="font-display text-base font-bold text-[#241436]">{item.product.name}</h3>
                   <div className="flex flex-wrap gap-2 text-[10px] font-semibold">
                     <span className="bg-[#F0E8FD] text-[#6D28D9] px-2 py-0.5 rounded-md border border-[#E1D2FA]">
@@ -81,18 +89,18 @@ export default function CartPage() {
               {/* Price & Quantity Controls */}
               <div className="flex items-center justify-between sm:justify-end gap-8 w-full sm:w-auto pt-4 sm:pt-0 border-t sm:border-t-0 border-[#F0E8FD]">
                 {/* Quantity Editor */}
-                <div className="flex items-center border border-[#E1D2FA] rounded-lg overflow-hidden bg-white">
+                <div className="flex items-center border border-[#E1D2FA] rounded-lg overflow-hidden bg-white divide-x divide-[#F0E8FD]">
                   <button
                     onClick={() => updateCartQuantity(idx, item.quantity - 1)}
-                    className="p-2 text-[#6B6178] hover:bg-[#F0E8FD] hover:text-[#6D28D9] transition"
+                    className="p-2 text-[#6B6178] hover:bg-[#F0E8FD] hover:text-[#6D28D9] active:scale-95 transition"
                     title="Decrease quantity"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
-                  <span className="w-8 text-center text-xs font-bold text-[#241436]">{item.quantity}</span>
+                  <span className="w-9 text-center text-xs font-bold text-[#241436]">{item.quantity}</span>
                   <button
                     onClick={() => updateCartQuantity(idx, item.quantity + 1)}
-                    className="p-2 text-[#6B6178] hover:bg-[#F0E8FD] hover:text-[#6D28D9] transition"
+                    className="p-2 text-[#6B6178] hover:bg-[#F0E8FD] hover:text-[#6D28D9] active:scale-95 transition"
                     title="Increase quantity"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -110,7 +118,7 @@ export default function CartPage() {
                 {/* Delete button */}
                 <button
                   onClick={() => removeFromCart(idx)}
-                  className="p-2.5 text-[#B3A3D6] hover:text-[#C4433C] rounded-lg hover:bg-[#FDF3F2] transition"
+                  className="p-2.5 text-[#B3A3D6] hover:text-[#C4433C] rounded-lg hover:bg-[#FDF3F2] active:scale-95 transition"
                   title="Remove item"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -122,16 +130,16 @@ export default function CartPage() {
           {/* Continue shopping link */}
           <Link
             href="/shop"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6D28D9] hover:underline pt-2"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6D28D9] hover:underline pt-2 group"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
             <span>Continue shopping for more cakes</span>
           </Link>
         </div>
 
         {/* Right: Cart Summary Panel */}
         <div className="lg:col-span-4">
-          <div className="bg-white border border-[#E7DBFB] rounded-2xl p-6 shadow-sm space-y-6">
+          <div className="bg-white border border-[#E7DBFB] rounded-2xl p-6 shadow-sm space-y-6 lg:sticky lg:top-28">
             <h3 className="font-display text-lg font-bold text-[#241436] border-b border-[#F0E8FD] pb-4">
               Order Summary
             </h3>
@@ -146,9 +154,9 @@ export default function CartPage() {
                 <span className="font-semibold text-[#241436]">Calculated at checkout</span>
               </div>
 
-              <div className="border-t border-[#F0E8FD] pt-4 flex justify-between">
+              <div className="border-t border-dashed border-[#E1D2FA] pt-4 flex justify-between items-baseline">
                 <span className="text-base font-semibold text-[#241436]">Order Subtotal</span>
-                <span className="font-display text-xl font-bold text-[#241436]">
+                <span className="font-display text-2xl font-bold text-[#7C3AED]">
                   Rs. {totalAmount.toLocaleString()}
                 </span>
               </div>
@@ -156,7 +164,7 @@ export default function CartPage() {
 
             <Link
               href="/checkout"
-              className="w-full inline-flex items-center justify-center gap-2 py-4 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold rounded-xl shadow-md shadow-[#7C3AED]/20 transition transform hover:-translate-y-0.5 text-sm"
+              className="w-full inline-flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-[#7C3AED] to-[#8B5CF6] hover:from-[#6D28D9] hover:to-[#7C3AED] text-white font-semibold rounded-xl shadow-md shadow-[#7C3AED]/25 transition duration-300 hover:-translate-y-0.5 text-sm"
             >
               <span>Proceed to Checkout</span>
               <ArrowRight className="w-4 h-4" />
@@ -168,6 +176,7 @@ export default function CartPage() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
