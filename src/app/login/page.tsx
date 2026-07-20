@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Cake, User, Lock, ShieldAlert, ArrowLeft, ArrowRight } from "lucide-react";
+import { Cake, User, Lock, ShieldAlert, CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
 import { useAppState } from "@/context/StateContext";
 
 export default function UserLoginPage() {
@@ -13,6 +13,7 @@ export default function UserLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect if already logged in
@@ -30,29 +31,51 @@ export default function UserLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
 
-    if (!email.trim() || !password.trim()) {
-      setError("Please enter both email and password.");
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    // Friendly, specific validation messages instead of one generic line
+    if (!trimmedEmail && !trimmedPassword) {
+      setError("Please enter your email and password to continue.");
+      return;
+    }
+    if (!trimmedEmail) {
+      setError("Please enter your email address.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setError("That email address doesn't look quite right. Please double-check it.");
+      return;
+    }
+    if (!trimmedPassword) {
+      setError("Please enter your password.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const loggedInUser = await login(email.trim(), password);
+      const loggedInUser = await login(trimmedEmail, trimmedPassword);
 
       if (loggedInUser) {
+        setSuccessMessage("You're logged in! Taking you to your dashboard...");
         const isStaff = roles.some((r) => r.id === loggedInUser.roleId);
-        if (isStaff) {
-          router.push("/admin/dashboard");
-        } else {
-          router.push("/");
-        }
+        setTimeout(() => {
+          router.push(isStaff ? "/admin/dashboard" : "/");
+        }, 700);
       } else {
-        setError("Incorrect email or password. Please try again.");
+        setError("We couldn't find an account matching that email and password. Please try again.");
       }
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || "Authentication failed. Please check your credentials.");
+      // Distinguish a network/server hiccup from a plain auth failure so the
+      // person knows whether retrying is likely to help.
+      if (err?.message?.toLowerCase().includes("network") || err?.message?.toLowerCase().includes("fetch")) {
+        setError("We're having trouble connecting right now. Please check your internet connection and try again.");
+      } else {
+        setError(err?.message || "Something went wrong while signing you in. Please try again in a moment.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -100,7 +123,10 @@ export default function UserLoginPage() {
                 type="email"
                 placeholder="you@cakebae.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (error) setError(null);
+                }}
                 autoComplete="username"
                 className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
@@ -120,14 +146,25 @@ export default function UserLoginPage() {
                 type="password"
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) setError(null);
+                }}
                 autoComplete="current-password"
                 className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
           </div>
 
-          {/* Error */}
+          {/* Success message */}
+          {successMessage && (
+            <div className="flex gap-2 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
+          {/* Error message */}
           {error && (
             <div className="flex gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
               <ShieldAlert className="w-5 h-5 flex-shrink-0" />
@@ -138,13 +175,21 @@ export default function UserLoginPage() {
           {/* Login Button */}
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !!successMessage}
             className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#2F0538] py-3.5 text-white font-bold transition hover:bg-[#4A1054] disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? "Signing In..." : "Log In to Dashboard"}
-            {!isSubmitting && <ArrowRight className="w-5 h-5" />}
+            {isSubmitting ? "Signing In..." : successMessage ? "Redirecting..." : "Log In to Dashboard"}
+            {!isSubmitting && !successMessage && <ArrowRight className="w-5 h-5" />}
           </button>
         </form>
+
+        {/* Register Link */}
+        <p className="mt-6 text-center text-sm text-slate-500">
+          Don't have an account?{" "}
+          <Link href="/register" className="font-semibold text-[#9D5CDB] hover:underline">
+            Register
+          </Link>
+        </p>
       </div>
     </div>
   );

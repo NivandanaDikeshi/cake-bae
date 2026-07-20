@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Cake, User, Lock, ShieldAlert, ArrowLeft, ArrowRight } from "lucide-react";
+import { Cake, User, Lock, ShieldAlert, CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
 import { useAppState } from "@/context/StateContext";
 
 export default function AdminLoginPage() {
@@ -13,6 +13,7 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect to dashboard only if a validated staff/admin session already exists.
@@ -25,30 +26,56 @@ export default function AdminLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
 
-    if (!email.trim() || !password.trim()) {
-      setError("Please enter both email and password.");
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    // Friendly, specific validation messages instead of one generic line
+    if (!trimmedEmail && !trimmedPassword) {
+      setError("Please enter your email and password to continue.");
+      return;
+    }
+    if (!trimmedEmail) {
+      setError("Please enter your email address.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setError("That email address doesn't look quite right. Please double-check it.");
+      return;
+    }
+    if (!trimmedPassword) {
+      setError("Please enter your password.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const loggedInUser = await login(email.trim(), password);
+      const loggedInUser = await login(trimmedEmail, trimmedPassword);
 
       if (loggedInUser) {
         const isStaff = roles.some((r) => r.id === loggedInUser.roleId);
         if (isStaff) {
-          router.push("/admin/dashboard");
+          setSuccessMessage("You're logged in! Taking you to the dashboard...");
+          setTimeout(() => {
+            router.push("/admin/dashboard");
+          }, 700);
         } else {
           await logout();
-          setError("Access Denied: Customer accounts cannot log in to the Staff Portal.");
+          setError("This is a customer account, so it can't access the Staff Portal. Please use a staff account, or log in as a customer instead.");
         }
       } else {
-        setError("Incorrect email or password. Please try again.");
+        setError("We couldn't find a staff account matching that email and password. Please try again.");
       }
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || "Authentication failed. Please check your credentials.");
+      // Distinguish a network/server hiccup from a plain auth failure so the
+      // person knows whether retrying is likely to help.
+      if (err?.message?.toLowerCase().includes("network") || err?.message?.toLowerCase().includes("fetch")) {
+        setError("We're having trouble connecting right now. Please check your internet connection and try again.");
+      } else {
+        setError(err?.message || "Something went wrong while signing you in. Please try again in a moment.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -72,7 +99,7 @@ export default function AdminLoginPage() {
           </div>
 
           <h1 className="mt-5 text-3xl font-black text-[#2F0538]">
-            Staff Portal Login
+            Admin Potal Login
           </h1>
 
           <p className="mt-2 text-sm text-slate-500">
@@ -96,7 +123,10 @@ export default function AdminLoginPage() {
                 type="email"
                 placeholder="you@cakebae.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (error) setError(null);
+                }}
                 autoComplete="username"
                 className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
@@ -116,12 +146,23 @@ export default function AdminLoginPage() {
                 type="password"
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) setError(null);
+                }}
                 autoComplete="current-password"
                 className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
           </div>
+
+          {/* Success message */}
+          {successMessage && (
+            <div className="flex gap-2 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+              <span>{successMessage}</span>
+            </div>
+          )}
 
           {/* Error */}
           {error && (
@@ -134,14 +175,14 @@ export default function AdminLoginPage() {
           {/* Login Button */}
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !!successMessage}
             className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#2F0538] py-3.5 text-white font-bold transition hover:bg-[#4A1054] disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? "Signing In..." : "Log In to Dashboard"}
-            {!isSubmitting && <ArrowRight className="w-5 h-5" />}
+            {isSubmitting ? "Signing In..." : successMessage ? "Redirecting..." : "Log In to Dashboard"}
+            {!isSubmitting && !successMessage && <ArrowRight className="w-5 h-5" />}
           </button>
         </form>
       </div>
     </div>
   );
-}
+} 
