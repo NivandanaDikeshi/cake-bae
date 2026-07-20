@@ -197,7 +197,8 @@ export default function RegisterPage() {
                 value={formData.name}
                 onChange={handleChange}
                 autoComplete="name"
-                className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                style={{ color: "#0f172a" }}
+                className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
           </div>
@@ -218,7 +219,8 @@ export default function RegisterPage() {
                 value={formData.email}
                 onChange={handleChange}
                 autoComplete="email"
-                className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                style={{ color: "#0f172a" }}
+                className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
           </div>
@@ -239,7 +241,8 @@ export default function RegisterPage() {
                 value={formData.password}
                 onChange={handleChange}
                 autoComplete="new-password"
-                className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                style={{ color: "#0f172a" }}
+                className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
           </div>
@@ -260,7 +263,8 @@ export default function RegisterPage() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 autoComplete="new-password"
-                className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                style={{ color: "#0f172a" }}
+                className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
           </div>

@@ -128,7 +128,8 @@ export default function AdminLoginPage() {
                   if (error) setError(null);
                 }}
                 autoComplete="username"
-                className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                style={{ color: "#0f172a" }}
+                className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
           </div>
@@ -151,7 +152,8 @@ export default function AdminLoginPage() {
                   if (error) setError(null);
                 }}
                 autoComplete="current-password"
-                className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                style={{ color: "#0f172a" }}
+                className="w-full rounded-xl border border-purple-200 py-3 pl-12 pr-4 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
           </div>
@@ -185,4 +187,4 @@ export default function AdminLoginPage() {
       </div>
     </div>
   );
-} 
+}
