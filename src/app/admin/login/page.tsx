@@ -99,11 +99,11 @@ export default function AdminLoginPage() {
           </div>
 
           <h1 className="mt-5 text-3xl font-black text-[#2F0538]">
-            Admin Potal Login
+            Admin Portal Login
           </h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            Sign in to access the Cake Bae Admin Dashboard. Customer accounts cannot log in here.
+            Sign in to access the Cake Bae Admin Dashboard.
           </p>
         </div>
 

@@ -7,7 +7,7 @@ import { Cake, User, Lock, ShieldAlert, CheckCircle2, ArrowLeft, ArrowRight } fr
 import { useAppState } from "@/context/StateContext";
 
 export default function UserLoginPage() {
-  const { login, currentUser, roles } = useAppState();
+  const { login, logout, currentUser, roles } = useAppState();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -16,16 +16,25 @@ export default function UserLoginPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect if already logged in
+  // Helper: is this account a staff/admin account?
+  const isStaffUser = (user: { roleId?: string | null } | null | undefined) => {
+    if (!user?.roleId) return false;
+    return roles.some((r) => r.id === user.roleId);
+  };
+
+  // Redirect if already logged in — but only regular users.
+  // Staff/admin accounts are not allowed to use this customer login,
+  // so if one is somehow already signed in here, sign them out.
   useEffect(() => {
-    if (currentUser) {
-      const isStaff = roles.some((r) => r.id === currentUser.roleId);
-      if (isStaff) {
-        router.push("/admin/dashboard");
-      } else {
-        router.push("/");
-      }
+    if (!currentUser) return;
+
+    if (isStaffUser(currentUser)) {
+      setError("This login is for customer accounts only. Please use the admin login to access the dashboard.");
+      logout?.();
+      return;
     }
+
+    router.push("/");
   }, [currentUser, roles, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,10 +68,17 @@ export default function UserLoginPage() {
       const loggedInUser = await login(trimmedEmail, trimmedPassword);
 
       if (loggedInUser) {
+        // Block staff/admin accounts from using the customer login.
+        if (isStaffUser(loggedInUser)) {
+          await logout?.();
+          setError("This login is for customer accounts only. Please use the admin login to access the dashboard.");
+          setIsSubmitting(false);
+          return;
+        }
+
         setSuccessMessage("You're logged in! Taking you to your dashboard...");
-        const isStaff = roles.some((r) => r.id === loggedInUser.roleId);
         setTimeout(() => {
-          router.push(isStaff ? "/admin/dashboard" : "/");
+          router.push("/");
         }, 700);
       } else {
         setError("We couldn't find an account matching that email and password. Please try again.");
