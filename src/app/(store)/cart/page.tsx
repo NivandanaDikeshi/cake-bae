@@ -14,7 +14,7 @@ export default function CartPage() {
     return (
       <div className="min-h-screen bg-[#F6F1FE]">
       <div className="mx-auto max-w-2xl px-4 py-24 sm:px-6 lg:px-8 text-center space-y-6 font-sans">
-        <div className="w-20 h-20 bg-[#F0E8FD] rounded-full flex items-center justify-center mx-auto text-[#8B5CF6] ring-8 ring-[#F6F1FE]">
+        <div className="w-20 h-20 bg-[#F0E8FD] rounded-full flex items-center justify-center mx-auto text-[#9D5CDB] ring-8 ring-[#F6F1FE]">
           <ShoppingBag className="w-10 h-10" />
         </div>
         <div className="space-y-2">
@@ -25,7 +25,7 @@ export default function CartPage() {
         </div>
         <Link
           href="/shop"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#7C3AED] to-[#8B5CF6] hover:from-[#6D28D9] hover:to-[#7C3AED] text-white font-semibold text-sm rounded-xl shadow-md shadow-[#7C3AED]/20 transition duration-300 hover:-translate-y-0.5"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-[#9D5CDB] hover:bg-[#8545C2] text-white font-semibold text-sm rounded-xl shadow-md shadow-[#9D5CDB]/25 transition duration-300 hover:-translate-y-0.5"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Browse Cakes Catalog</span>
@@ -71,7 +71,7 @@ export default function CartPage() {
                 <div className="space-y-1.5">
                   <h3 className="font-display text-base font-bold text-[#241436]">{item.product.name}</h3>
                   <div className="flex flex-wrap gap-2 text-[10px] font-semibold">
-                    <span className="bg-[#F0E8FD] text-[#6D28D9] px-2 py-0.5 rounded-md border border-[#E1D2FA]">
+                    <span className="bg-[#F0E8FD] text-[#8545C2] px-2 py-0.5 rounded-md border border-[#E1D2FA]">
                       Size: {item.selectedSize}
                     </span>
                     <span className="bg-[#F4F2F7] text-[#6B6178] px-2 py-0.5 rounded-md border border-[#EAE6EF]">
@@ -92,7 +92,7 @@ export default function CartPage() {
                 <div className="flex items-center border border-[#E1D2FA] rounded-lg overflow-hidden bg-white divide-x divide-[#F0E8FD]">
                   <button
                     onClick={() => updateCartQuantity(idx, item.quantity - 1)}
-                    className="p-2 text-[#6B6178] hover:bg-[#F0E8FD] hover:text-[#6D28D9] active:scale-95 transition"
+                    className="p-2 text-[#6B6178] hover:bg-[#F0E8FD] hover:text-[#8545C2] active:scale-95 transition"
                     title="Decrease quantity"
                   >
                     <Minus className="w-3.5 h-3.5" />
@@ -100,7 +100,7 @@ export default function CartPage() {
                   <span className="w-9 text-center text-xs font-bold text-[#241436]">{item.quantity}</span>
                   <button
                     onClick={() => updateCartQuantity(idx, item.quantity + 1)}
-                    className="p-2 text-[#6B6178] hover:bg-[#F0E8FD] hover:text-[#6D28D9] active:scale-95 transition"
+                    className="p-2 text-[#6B6178] hover:bg-[#F0E8FD] hover:text-[#8545C2] active:scale-95 transition"
                     title="Increase quantity"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -111,7 +111,7 @@ export default function CartPage() {
                 <div className="text-right">
                   <span className="text-xs text-[#B3A3D6] block">Total</span>
                   <span className="font-display text-base font-bold text-[#241436]">
-                    Rs. {(item.product.price * item.quantity).toLocaleString()}
+                    Rs. {totalAmount.toLocaleString()}
                   </span>
                 </div>
 
@@ -130,7 +130,7 @@ export default function CartPage() {
           {/* Continue shopping link */}
           <Link
             href="/shop"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6D28D9] hover:underline pt-2 group"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8545C2] hover:underline pt-2 group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
             <span>Continue shopping for more cakes</span>
@@ -156,7 +156,7 @@ export default function CartPage() {
 
               <div className="border-t border-dashed border-[#E1D2FA] pt-4 flex justify-between items-baseline">
                 <span className="text-base font-semibold text-[#241436]">Order Subtotal</span>
-                <span className="font-display text-2xl font-bold text-[#7C3AED]">
+                <span className="font-display text-2xl font-bold text-[#9D5CDB]">
                   Rs. {totalAmount.toLocaleString()}
                 </span>
               </div>
@@ -164,7 +164,7 @@ export default function CartPage() {
 
             <Link
               href="/checkout"
-              className="w-full inline-flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-[#7C3AED] to-[#8B5CF6] hover:from-[#6D28D9] hover:to-[#7C3AED] text-white font-semibold rounded-xl shadow-md shadow-[#7C3AED]/25 transition duration-300 hover:-translate-y-0.5 text-sm"
+              className="w-full inline-flex items-center justify-center gap-2 py-4 bg-[#9D5CDB] hover:bg-[#8545C2] text-white font-semibold rounded-xl shadow-md shadow-[#9D5CDB]/25 transition duration-300 hover:-translate-y-0.5 text-sm"
             >
               <span>Proceed to Checkout</span>
               <ArrowRight className="w-4 h-4" />

@@ -56,7 +56,7 @@ export const Header: React.FC = () => {
                   onError={() => setLogoError(true)}
                 />
               ) : (
-                <Cake className="w-6 h-6 text-purple-600" />
+                <Cake className="w-6 h-6 text-[#9D5CDB]" />
               )}
             </div>
             <div className="flex flex-col leading-tight">
@@ -99,7 +99,7 @@ export const Header: React.FC = () => {
             {currentUser && isStaff && (
               <Link
                 href="/admin/dashboard"
-                className="text-sm font-bold text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3 py-1.5 rounded-lg transition"
+                className="text-sm font-bold text-[#8545C2] hover:text-[#2F0538] bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3 py-1.5 rounded-lg transition"
               >
                 Admin Panel
               </Link>
@@ -116,7 +116,7 @@ export const Header: React.FC = () => {
             >
               <ShoppingBag className="w-6 h-6 stroke-[2]" />
               {cartItemsCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#f59e0b] text-[10px] font-bold text-white ring-2 ring-white animate-bounce-slow">
+                <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#9D5CDB] text-[10px] font-bold text-white ring-2 ring-white animate-bounce-slow">
                   {cartItemsCount}
                 </span>
               )}
@@ -133,11 +133,11 @@ export const Header: React.FC = () => {
                   }`}
                 >
                   <UserIcon className="w-4 h-4" />
-                  <span>Account</span>
+                  <span>My profile</span>
                 </Link>
                 <button
                   onClick={logout}
-                  className="p-2 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition"
+                  className="p-2 text-slate-400 hover:text-[#9D5CDB] rounded-lg hover:bg-purple-50 transition"
                   title="Logout"
                 >
                   <LogOut className="w-4 h-4" />
@@ -154,7 +154,7 @@ export const Header: React.FC = () => {
                 </Link>
                 <Link
                   href="/register"
-                  className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#9D5CDB] hover:bg-[#8a4bc9] px-4 py-2 rounded-lg transition shadow-sm"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#9D5CDB] hover:bg-[#8545C2] px-4 py-2 rounded-lg transition shadow-sm"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>Register</span>
@@ -209,8 +209,8 @@ export const Header: React.FC = () => {
                   onClick={handleMobileLinkClick}
                   className={`flex items-center justify-center gap-2 w-full py-3 rounded-lg text-sm font-semibold transition ${
                     isActive("/orders")
-                      ? "bg-purple-100 text-purple-700"
-                      : "bg-purple-50 text-purple-700 hover:bg-purple-100"
+                      ? "bg-purple-100 text-[#8545C2]"
+                      : "bg-purple-50 text-[#8545C2] hover:bg-purple-100"
                   }`}
                 >
                   <ReceiptText className="w-4 h-4" />
@@ -221,8 +221,8 @@ export const Header: React.FC = () => {
                   onClick={handleMobileLinkClick}
                   className={`flex items-center justify-center gap-2 w-full py-3 rounded-lg text-sm font-semibold border transition ${
                     isActive("/profile")
-                      ? "border-purple-300 bg-purple-50 text-purple-700"
-                      : "border-purple-100 text-purple-700 hover:bg-purple-50"
+                      ? "border-purple-300 bg-purple-50 text-[#8545C2]"
+                      : "border-purple-100 text-[#8545C2] hover:bg-purple-50"
                   }`}
                 >
                   <UserIcon className="w-4 h-4" />
@@ -233,7 +233,7 @@ export const Header: React.FC = () => {
                     logout();
                     handleMobileLinkClick();
                   }}
-                  className="flex items-center justify-center gap-2 w-full py-3 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition"
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-purple-50 text-[#8545C2] rounded-lg text-sm font-semibold hover:bg-purple-100 transition"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Logout</span>
@@ -252,7 +252,7 @@ export const Header: React.FC = () => {
                 <Link
                   href="/register"
                   onClick={handleMobileLinkClick}
-                  className="flex items-center justify-center gap-2 w-full py-3 bg-[#9D5CDB] text-white rounded-lg text-sm font-semibold hover:bg-[#8a4bc9] transition"
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-[#9D5CDB] text-white rounded-lg text-sm font-semibold hover:bg-[#8545C2] transition"
                 >
                   <UserPlus className="w-4 h-4" />
                   <span>Register</span>

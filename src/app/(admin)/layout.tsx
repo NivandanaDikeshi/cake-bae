@@ -18,7 +18,8 @@ import {
   Cake,
   FileImage,
   Lock,
-  ChevronRight
+  ChevronRight,
+  DollarSign
 } from "lucide-react";
 import { useAppState } from "@/context/StateContext";
 
@@ -75,6 +76,7 @@ export default function AdminLayout({
       module: "products",
       action: "read"
     },
+
     {
       name: "Calendar",
       href: "/admin/calendar",
@@ -82,6 +84,7 @@ export default function AdminLayout({
       module: "calendar",
       action: "read"
     },
+
     {
       name: "Roles",
       href: "/admin/roles",

@@ -23,7 +23,7 @@ export const Footer: React.FC = () => {
                     (e.target as HTMLElement).style.display = "none";
                   }}
                 />
-                <Cake className="w-5 h-5 text-purple-600 absolute" />
+                <Cake className="w-5 h-5 text-[#9D5CDB] absolute" />
               </div>
               <div className="flex flex-col">
                 <span className="text-lg font-bold tracking-tight text-white">
@@ -104,15 +104,15 @@ export const Footer: React.FC = () => {
             <h3 className="text-sm font-semibold uppercase tracking-wider text-[#9D5CDB] mb-4">Get In Touch</h3>
             <ul className="space-y-3 text-sm text-purple-200">
               <li className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-[#f59e0b] mt-0.5 flex-shrink-0" />
+                <MapPin className="w-4 h-4 text-[#C292F0] mt-0.5 flex-shrink-0" />
                 <span>Nawala Road, Rajagiriya, Sri Lanka</span>
               </li>
               <li className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                <Phone className="w-4 h-4 text-[#C292F0] flex-shrink-0" />
                 <span>+94 77 123 4567</span>
               </li>
               <li className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-[#f59e0b] flex-shrink-0" />
+                <Mail className="w-4 h-4 text-[#C292F0] flex-shrink-0" />
                 <span>hello@cakebae.lk</span>
               </li>
             </ul>
@@ -125,7 +125,7 @@ export const Footer: React.FC = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© {new Date().getFullYear()} Cake Bae. All rights reserved.</p>
           <p className="flex items-center gap-1">
-            Crafted with <Heart className="w-3.5 h-3.5 fill-[#f59e0b] text-[#f59e0b]" /> by{" "}
+            Crafted with <Heart className="w-3.5 h-3.5 fill-[#9D5CDB] text-[#9D5CDB]" /> by{" "}
             <span className="font-semibold text-white">Nivandana</span>
           </p>
         </div>

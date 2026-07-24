@@ -11,7 +11,12 @@ import {
   Truck,
   Palette,
   CreditCard,
-  Mail
+  Mail,
+  Send,
+  User,
+  Phone,
+  MessageSquare,
+  CheckCircle2
 } from "lucide-react";
 
 type FAQItem = {
@@ -19,6 +24,16 @@ type FAQItem = {
   answer: string;
   icon: React.ComponentType<{ className?: string }>;
 };
+
+interface ContactFormState {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+}
+
+// WhatsApp business number for Cake Bae (update with the real number, country code, no + or spaces)
+const WHATSAPP_NUMBER = "94771234567";
 
 export default function FAQPage() {
   const [activeFAQ, setActiveFAQ] = useState<number | null>(0);
@@ -50,6 +65,65 @@ export default function FAQPage() {
     setActiveFAQ(activeFAQ === index ? null : index);
   };
 
+  // ---- Contact / Message form state ----
+  const [formData, setFormData] = useState<ContactFormState>({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+  const [formErrors, setFormErrors] = useState<Partial<ContactFormState>>({});
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (formErrors[name as keyof ContactFormState]) {
+      setFormErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  const validate = (): boolean => {
+    const errors: Partial<ContactFormState> = {};
+    if (!formData.name.trim()) errors.name = "Please enter your name";
+    if (!formData.message.trim()) errors.message = "Please enter a message";
+    if (
+      formData.email.trim() &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
+    ) {
+      errors.email = "Please enter a valid email";
+    }
+    if (!formData.email.trim() && !formData.phone.trim()) {
+      errors.phone = "Add an email or phone number so we can reach you";
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    const lines = [
+      `Hi Cake Bae! I'm ${formData.name}.`,
+      formData.email ? `Email: ${formData.email}` : null,
+      formData.phone ? `Phone: ${formData.phone}` : null,
+      "",
+      formData.message,
+    ].filter(Boolean);
+
+    const text = encodeURIComponent(lines.join("\n"));
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
+
+    setSubmitted(true);
+    window.open(url, "_blank", "noopener,noreferrer");
+
+    setFormData({ name: "", email: "", phone: "", message: "" });
+    setTimeout(() => setSubmitted(false), 5000);
+  };
+
   return (
     <div className="pb-0 bg-white">
       <Header />
@@ -62,7 +136,6 @@ export default function FAQPage() {
         </div>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-5">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm text-[#C292F0] font-semibold text-xs tracking-[0.15em] uppercase border border-white/10">
-            <Sparkles className="w-4 h-4 fill-[#f59e0b] text-[#f59e0b]" />
             <span>Got Questions?</span>
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1]">
@@ -137,36 +210,135 @@ export default function FAQPage() {
         </div>
       </section>
 
-      {/* Contact CTA */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2F0538] via-[#1E0124] to-[#4A1054] px-8 py-14 sm:px-16 sm:py-16 text-center text-white shadow-2xl">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full bg-[#9D5CDB] filter blur-3xl"></div>
-            <div className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-[#f59e0b] filter blur-3xl"></div>
+      {/* Send Us A Message */}
+      <section className="mx-auto max-w-3xl px-4 sm:px-6 pb-20 sm:pb-24">
+        <div className="text-center space-y-3 mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-[#8545C2] font-bold text-xs tracking-wider uppercase border border-purple-100">
+            <span>Get In Touch</span>
           </div>
-          <div className="relative z-10 space-y-6">
-            <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center mx-auto">
-              <Mail className="w-6 h-6 text-[#C292F0]" />
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black">Still Have Questions?</h2>
-            <p className="text-purple-100/90 max-w-xl mx-auto text-sm sm:text-base font-medium leading-relaxed">
-              Can't find what you're looking for? Message us directly and we'll get back to you as soon as possible.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-              <a
-                href="https://www.facebook.com/share/1KGEzKfUu9/?mibextid=wwXIfr"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#9D5CDB] hover:bg-[#8545C2] text-white font-bold rounded-xl shadow-lg shadow-[#9D5CDB]/30 transition-all duration-300 transform hover:-translate-y-0.5"
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span>Message Us on Facebook</span>
-              </a>
-            </div>
-          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-[#2F0538]">
+            Send Us A Message
+          </h2>
+          <p className="text-slate-500 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
+            Didn't find your answer above? Send us a note and we'll get back to you on WhatsApp.
+          </p>
         </div>
-      </section>
 
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="rounded-2xl border border-purple-100 bg-purple-50/30 p-6 sm:p-10 space-y-6"
+        >
+          {submitted && (
+            <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-semibold">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>Thanks! We've opened WhatsApp with your message ready to send.</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label htmlFor="name" className="text-xs font-bold text-[#2F0538] uppercase tracking-wide">
+                Name
+              </label>
+              <div className="relative">
+                <User className="w-4 h-4 text-[#9D5CDB] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Your full name"
+                  className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
+                    formErrors.name ? "border-red-300 bg-red-50" : "border-purple-100 bg-white"
+                  } text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/40 focus:border-[#9D5CDB] transition-colors`}
+                />
+              </div>
+              {formErrors.name && (
+                <p className="text-xs text-red-500 font-medium">{formErrors.name}</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="phone" className="text-xs font-bold text-[#2F0538] uppercase tracking-wide">
+                Phone
+              </label>
+              <div className="relative">
+                <Phone className="w-4 h-4 text-[#9D5CDB] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="07X XXX XXXX"
+                  className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
+                    formErrors.phone ? "border-red-300 bg-red-50" : "border-purple-100 bg-white"
+                  } text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/40 focus:border-[#9D5CDB] transition-colors`}
+                />
+              </div>
+              {formErrors.phone && (
+                <p className="text-xs text-red-500 font-medium">{formErrors.phone}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="text-xs font-bold text-[#2F0538] uppercase tracking-wide">
+              Email <span className="text-slate-400 normal-case font-medium">(optional)</span>
+            </label>
+            <div className="relative">
+              <Mail className="w-4 h-4 text-[#9D5CDB] absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
+                  formErrors.email ? "border-red-300 bg-red-50" : "border-purple-100 bg-white"
+                } text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/40 focus:border-[#9D5CDB] transition-colors`}
+              />
+            </div>
+            {formErrors.email && (
+              <p className="text-xs text-red-500 font-medium">{formErrors.email}</p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="message" className="text-xs font-bold text-[#2F0538] uppercase tracking-wide">
+              Message
+            </label>
+            <div className="relative">
+              <MessageSquare className="w-4 h-4 text-[#9D5CDB] absolute left-3.5 top-3.5" />
+              <textarea
+                id="message"
+                name="message"
+                rows={5}
+                value={formData.message}
+                onChange={handleChange}
+                placeholder="Ask us anything about flavors, sizes, delivery, or custom designs."
+                className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
+                  formErrors.message ? "border-red-300 bg-red-50" : "border-purple-100 bg-white"
+                } text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/40 focus:border-[#9D5CDB] transition-colors resize-none`}
+              />
+            </div>
+            {formErrors.message && (
+              <p className="text-xs text-red-500 font-medium">{formErrors.message}</p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#2F0538] hover:bg-[#4A1054] text-white text-sm font-bold rounded-xl shadow-md transition-all duration-300 transform hover:-translate-y-0.5"
+          >
+            <Send className="w-4 h-4" />
+            <span>Send Message</span>
+          </button>
+        </form>
+      </section>
       <Footer />
     </div>
   );

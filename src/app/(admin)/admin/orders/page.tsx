@@ -15,12 +15,20 @@ export default function AdminOrdersPage() {
   // Status lists
   const statusFilters = ["All", "Pending", "Confirmed", "Baking/Decorating", "Ready for Dispatch", "Delivered", "Completed", "Cancelled"];
 
+  // Safe display helper — falls back gracefully if a customer name was
+  // never captured (e.g. an old/guest order that skipped the field),
+  // instead of rendering blank or crashing on .toLowerCase().
+  const getCustomerDisplayName = (order: Order) => {
+    return order.customerName?.trim() || order.customerEmail?.trim() || "Guest Customer";
+  };
+
   // Filter orders
   const filteredOrders = orders.filter((order) => {
+    const customerDisplay = getCustomerDisplayName(order);
     const matchesSearch =
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customerPhone.includes(searchTerm);
+      customerDisplay.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.customerPhone || "").includes(searchTerm);
     const matchesStatus = selectedStatus === "All" || order.status === selectedStatus;
     return matchesSearch && matchesStatus;
   });
@@ -126,8 +134,8 @@ export default function AdminOrdersPage() {
                     <td className="px-6 py-4 font-bold text-purple-700">{order.id}</td>
                     <td className="px-6 py-4">
                       <div>
-                        <span className="font-bold text-slate-800 block">{order.customerName}</span>
-                        <span className="text-[10px] text-slate-400">{order.customerPhone}</span>
+                        <span className="font-bold text-slate-800 block">{getCustomerDisplayName(order)}</span>
+                        <span className="text-[10px] text-slate-400">{order.customerPhone || "No phone on file"}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -212,11 +220,11 @@ export default function AdminOrdersPage() {
               <div className="space-y-3">
                 <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px]">Customer Details</h4>
                 <div className="space-y-1 text-slate-600">
-                  <p><strong className="text-slate-800">Name:</strong> {selectedOrder.customerName}</p>
-                  <p><strong className="text-slate-800">Phone:</strong> {selectedOrder.customerPhone}</p>
-                  <p><strong className="text-slate-800">Email:</strong> {selectedOrder.customerEmail}</p>
-                  <p><strong className="text-slate-800">Address:</strong> {selectedOrder.deliveryAddress}</p>
-                  <p><strong className="text-slate-800">Region:</strong> {selectedOrder.deliveryRegion}</p>
+                  <p><strong className="text-slate-800">Name:</strong> {getCustomerDisplayName(selectedOrder)}</p>
+                  <p><strong className="text-slate-800">Phone:</strong> {selectedOrder.customerPhone || "Not provided"}</p>
+                  <p><strong className="text-slate-800">Email:</strong> {selectedOrder.customerEmail || "Not provided"}</p>
+                  <p><strong className="text-slate-800">Address:</strong> {selectedOrder.deliveryAddress || "Not provided"}</p>
+                  <p><strong className="text-slate-800">Region:</strong> {selectedOrder.deliveryRegion || "Not provided"}</p>
                 </div>
               </div>
 

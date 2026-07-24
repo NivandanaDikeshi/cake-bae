@@ -20,13 +20,19 @@ export interface Product {
   id: string;
   name: string;
   description: string;
-  price: number; // LKR
+  price: number; // LKR - base/default price
   category: string;
   image: string;
   sizes: string[];
   flavours: string[];
   leadTime: string;
   rating: number;
+  // Optional per-size absolute pricing. If a selected size has no entry
+  // here, the base `price` above is used as the fallback.
+  sizePrices?: Record<string, number>;
+  // Optional per-flavour add-on pricing (added on top of the size price).
+  // If a selected flavour has no entry here, the add-on defaults to 0.
+  flavourPrices?: Record<string, number>;
 }
 
 export interface CartItem {
@@ -35,11 +41,15 @@ export interface CartItem {
   selectedSize: string;
   selectedFlavour: string;
   customMessage: string;
+  // Unit price at the time the item was added, accounting for the
+  // selected size/flavour. Optional for backwards-compatibility with
+  // cart items saved before this field existed (see getCartTotal below).
+  unitPrice?: number;
 }
 
 export interface Order {
   id: string;
-  userId?: string;
+  userId?: string | null;
   customerName: string;
   customerPhone: string;
   customerEmail: string;
@@ -192,7 +202,6 @@ const initialRoles: Role[] = [
     name: "Operator",
     status: "Active",
     isAdminPrivileges: false,
-    isSystem: true,
     permissionCount: 8,
     permissions: {
       dashboard: ["read"],
@@ -200,22 +209,6 @@ const initialRoles: Role[] = [
       orders: ["read", "update"],
       customers: ["read"],
       calendar: ["read", "update"],
-      roles: [],
-      reports: []
-    }
-  },
-  {
-    id: "r-pumpoperator",
-    name: "Pump Operator",
-    status: "Active",
-    isAdminPrivileges: false,
-    permissionCount: 4,
-    permissions: {
-      dashboard: ["read"],
-      products: ["read"],
-      orders: ["read"],
-      customers: [],
-      calendar: [],
       roles: [],
       reports: []
     }
@@ -525,6 +518,11 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (existingIdx > -1) {
       updated[existingIdx].quantity += item.quantity;
+      // Keep the unit price in sync in case pricing changed since the
+      // existing line was added (e.g. admin updated sizePrices).
+      if (item.unitPrice !== undefined) {
+        updated[existingIdx].unitPrice = item.unitPrice;
+      }
     } else {
       updated.push(item);
     }
@@ -554,8 +552,14 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     saveToLocalStorage("cb_cart", []);
   };
 
+  // Uses the size/flavour-aware unitPrice when available, and falls back to
+  // the product's base price for any older cart items saved before unitPrice
+  // existed (e.g. still sitting in a customer's localStorage).
   const getCartTotal = () => {
-    return cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
+    return cart.reduce((total, item) => {
+      const price = item.unitPrice !== undefined ? item.unitPrice : item.product.price;
+      return total + price * item.quantity;
+    }, 0);
   };
 
   // Product actions
@@ -612,13 +616,23 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       id,
       status: "Pending",
       createdAt: new Date().toISOString(),
-      userId: currentUser?.id,
+      // Firestore's setDoc() rejects any field whose value is `undefined`
+      // (it's fine with `null`). currentUser is null during guest checkout,
+      // so currentUser?.id would otherwise resolve to undefined here and
+      // throw "Unsupported field value: undefined (found in field userId)".
+      userId: currentUser?.id ?? null,
     };
 
     if (db) {
       try {
         const { id: _, ...orderDataToSave } = newOrder;
-        await setDoc(doc(db, "orders", id), orderDataToSave);
+        // Belt-and-suspenders: strip any other undefined fields (e.g. an
+        // optional orderNotes left blank) before writing, so a future
+        // optional field can't reintroduce this same Firestore error.
+        const cleanOrderData = Object.fromEntries(
+          Object.entries(orderDataToSave).filter(([, v]) => v !== undefined)
+        );
+        await setDoc(doc(db, "orders", id), cleanOrderData);
       } catch (err) {
         console.error("Firestore placeOrder error:", err);
       }

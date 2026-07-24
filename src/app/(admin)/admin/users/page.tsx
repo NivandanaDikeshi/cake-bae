@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Edit2, Trash2, Users, Search, X } from "lucide-react";
+import { Plus, Edit2, Trash2, Users, Search, X, AlertTriangle } from "lucide-react";
 import { useAppState, User } from "@/context/StateContext";
 
 export default function AdminUsersPage() {
@@ -21,14 +21,28 @@ export default function AdminUsersPage() {
   const [status, setStatus] = useState<"Active" | "Inactive">("Active");
   const [error, setError] = useState<string | null>(null);
 
-  const filteredUsers = users.filter((u) => {
+  // Delete confirmation state
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // This page is for STAFF logins only. Customers who sign up on the
+  // storefront get roleId "customer" (or have no matching entry in the
+  // `roles` collection at all), which isn't a staff role — so they must
+  // never appear in this table. Without this filter they'd show up with
+  // their role badge reading "Unknown", since getRoleName() can't find
+  // a "customer" role among the staff roles list.
+  const staffUsers = users.filter((u) => u.roleId !== "customer" && roles.some((r) => r.id === u.roleId));
+
+  const filteredUsers = staffUsers.filter((u) => {
     const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           u.email.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
 
   const getRoleName = (roleId: string) => {
-    return roles.find((r) => r.id === roleId)?.name || "Unknown";
+    if (roleId === "customer") return "Customer";
+    return roles.find((r) => r.id === roleId)?.name || "Unassigned Role";
   };
 
   const handleOpenAdd = () => {
@@ -84,6 +98,33 @@ export default function AdminUsersPage() {
     } catch (err: any) {
       console.error(err);
       setError(err?.message || "Failed to save user. Please check if email is valid and not already registered.");
+    }
+  };
+
+  // Open the confirmation modal instead of deleting immediately
+  const handleRequestDelete = (user: User) => {
+    setDeleteTarget(user);
+    setDeleteError(null);
+  };
+
+  const handleCancelDelete = () => {
+    if (isDeleting) return; // don't allow closing mid-request
+    setDeleteTarget(null);
+    setDeleteError(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteUser(deleteTarget.id);
+      setDeleteTarget(null);
+    } catch (err: any) {
+      console.error(err);
+      setDeleteError(err?.message || "Failed to delete user. Please try again.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -161,7 +202,7 @@ export default function AdminUsersPage() {
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => deleteUser(u.id)}
+                          onClick={() => handleRequestDelete(u)}
                           className="p-1.5 bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition"
                           title="Remove staff member"
                         >
@@ -290,6 +331,52 @@ export default function AdminUsersPage() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"
+            onClick={handleCancelDelete}
+          ></div>
+          <div className="relative bg-white border border-red-100 rounded-3xl w-full max-w-sm p-6 sm:p-8 shadow-2xl space-y-5 z-10">
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-red-500" />
+              </div>
+              <h3 className="text-lg font-black text-slate-800">Remove Staff Member?</h3>
+              <p className="text-xs text-slate-500">
+                You're about to permanently remove{" "}
+                <span className="font-bold text-slate-700">{deleteTarget.name}</span>{" "}
+                ({deleteTarget.email}) and revoke their login access. This action cannot be undone.
+              </p>
+            </div>
+
+            {deleteError && (
+              <p className="text-xs text-red-500 font-bold text-center">{deleteError}</p>
+            )}
+
+            <div className="border-t border-slate-100 pt-4 flex justify-center gap-2">
+              <button
+                type="button"
+                onClick={handleCancelDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 border border-purple-100 text-slate-600 font-bold rounded-xl text-xs disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-xs shadow-md transition disabled:opacity-50"
+              >
+                {isDeleting ? "Removing..." : "Yes, Remove User"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

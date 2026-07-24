@@ -10,6 +10,7 @@ type GalleryImage = {
   url: string;
   title: string;
   category: string;
+  description: string;
   featured?: boolean;
 };
 
@@ -50,6 +51,7 @@ export default function GalleryPage() {
         url: p.image,
         title: p.name,
         category: p.category,
+        description: p.description || "Handcrafted fresh, just for your celebration.",
         featured: index % 5 === 0
       }));
     return shuffleArray(base);
@@ -78,11 +80,10 @@ export default function GalleryPage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-[#2F0538] via-[#1E0124] to-[#4A1054] text-white py-24 sm:py-32">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#9D5CDB] filter blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-[#f59e0b] filter blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-[#9D5CDB] filter blur-3xl animate-pulse"></div>
         </div>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-5">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm text-[#C292F0] font-semibold text-xs tracking-[0.15em] uppercase border border-white/10">
-            <Sparkles className="w-4 h-4 fill-[#f59e0b] text-[#f59e0b]" />
             <span>Our Portfolio</span>
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1]">
@@ -105,7 +106,7 @@ export default function GalleryPage() {
                   onClick={() => setActiveCategory(cat)}
                   className={`px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-bold border transition-all duration-200 ${
                     activeCategory === cat
-                      ? "bg-[#2F0538] border-[#2F0538] text-white shadow-md"
+                      ? "bg-[#9D5CDB] border-[#9D5CDB] text-white shadow-md shadow-[#9D5CDB]/30"
                       : "bg-white border-slate-200 text-slate-600 hover:border-purple-300 hover:text-purple-700"
                   }`}
                 >
@@ -116,7 +117,7 @@ export default function GalleryPage() {
 
             <button
               onClick={handleShuffle}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold border border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100 hover:border-purple-300 transition-all duration-200 shrink-0 group"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold border border-purple-200 text-purple-700 bg-purple-50 hover:bg-[#9D5CDB] hover:border-[#9D5CDB] hover:text-white transition-all duration-200 shrink-0 group"
             >
               <Shuffle className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
               <span>Shuffle</span>
@@ -146,12 +147,15 @@ export default function GalleryPage() {
                   (e.target as HTMLImageElement).src = fallbackList[index % fallbackList.length];
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-purple-950/85 via-purple-950/10 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-4">
+              <div className="absolute inset-0 bg-gradient-to-t from-purple-950/90 via-purple-950/30 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-4">
                 <span className="text-purple-200 text-[10px] sm:text-xs font-bold tracking-wider uppercase mb-1">
                   {image.category}
                 </span>
                 <span className="text-white text-sm sm:text-base font-black leading-tight">
                   {image.title}
+                </span>
+                <span className="text-purple-200/80 text-[11px] sm:text-xs leading-snug mt-1 line-clamp-2">
+                  {image.description}
                 </span>
               </div>
               <div className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/95 flex items-center justify-center opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all duration-300 shadow-md">
@@ -180,7 +184,7 @@ export default function GalleryPage() {
         >
           <button
             onClick={() => setSelectedImage(null)}
-            className="absolute top-5 right-5 sm:top-8 sm:right-8 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white transition-all duration-200 hover:rotate-90"
+            className="absolute top-5 right-5 sm:top-8 sm:right-8 w-10 h-10 rounded-full bg-white/10 hover:bg-[#9D5CDB] border border-white/20 hover:border-[#9D5CDB] flex items-center justify-center text-white transition-all duration-200 hover:rotate-90"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -199,11 +203,14 @@ export default function GalleryPage() {
                 (e.target as HTMLImageElement).src = fallbackList[0];
               }}
             />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-purple-950/95 via-purple-950/60 to-transparent p-6 pt-16">
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-purple-950/95 via-purple-950/70 to-transparent p-6 pt-20">
               <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/10 text-purple-200 text-[10px] font-bold tracking-wider uppercase mb-2">
                 {selectedImage.category}
               </span>
               <h3 className="text-white text-xl sm:text-2xl font-black">{selectedImage.title}</h3>
+              <p className="text-purple-100/90 text-sm mt-2 leading-relaxed max-w-xl">
+                {selectedImage.description}
+              </p>
             </div>
           </div>
         </div>

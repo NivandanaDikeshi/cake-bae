@@ -14,9 +14,28 @@ import {
   XCircle,
   Trash2,
   Loader2,
-  ReceiptText,
   ArrowRight
 } from "lucide-react";
+
+// Gold stays reserved for a single meaning — "almost in your hands" — on
+// the Ready for Dispatch step. Everything else uses the same purple-*/
+// slate-* Tailwind classes as the storefront home page, plus the brand's
+// arbitrary hex accents (#2F0538, #9D5CDB, #4A1054, #C292F0) it already uses.
+const STEP_CLASSES: Record<string, string> = {
+  "Pending": "bg-[#C292F0] text-white",
+  "Confirmed": "bg-[#9D5CDB] text-white",
+  "Baking/Decorating": "bg-purple-700 text-white",
+  "Ready for Dispatch": "bg-[#F0B429] text-[#2F0538]",
+  "Delivered": "bg-[#2F0538] text-white"
+};
+
+const STEP_LINE_CLASSES: Record<string, string> = {
+  "Pending": "bg-[#C292F0]",
+  "Confirmed": "bg-[#9D5CDB]",
+  "Baking/Decorating": "bg-purple-700",
+  "Ready for Dispatch": "bg-[#F0B429]",
+  "Delivered": "bg-[#2F0538]"
+};
 
 const STATUS_FILTERS = [
   "All",
@@ -93,8 +112,10 @@ function MiniTracker({ status }: { status: string }) {
   const key = status?.toLowerCase();
 
   if (key === "cancelled") {
+    // Cancelled isn't "an error" — it's simply outside the pipeline, so it
+    // gets a neutral slate badge rather than a red/rose alarm color.
     return (
-      <div className="flex items-center gap-1.5 rounded-lg bg-rose-50 border border-rose-100 px-3 py-2 text-xs font-bold text-rose-600">
+      <div className="flex items-center gap-1.5 rounded-lg bg-slate-100 border border-slate-100 px-3 py-2 text-xs font-bold text-slate-500">
         <XCircle className="w-3.5 h-3.5" />
         Order cancelled
       </div>
@@ -103,7 +124,7 @@ function MiniTracker({ status }: { status: string }) {
 
   if (key === "delivered" || key === "completed") {
     return (
-      <div className="flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-2 text-xs font-bold text-emerald-700">
+      <div className="flex items-center gap-1.5 rounded-lg bg-[#2F0538] px-3 py-2 text-xs font-bold text-white">
         <CheckCircle2 className="w-3.5 h-3.5" />
         Delivered — order complete
       </div>
@@ -121,14 +142,18 @@ function MiniTracker({ status }: { status: string }) {
           <div key={step.name} className={`flex items-center ${isLast ? "" : "flex-1"}`}>
             <span
               className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold transition-colors ${
-                isDone ? "bg-[#9D5CDB] text-white" : "bg-purple-50 text-purple-300 border border-purple-100"
+                isDone ? STEP_CLASSES[step.name] : "bg-purple-50 text-purple-300 border border-purple-100"
               }`}
               title={step.name}
             >
               {isDone ? "✓" : idx + 1}
             </span>
             {!isLast && (
-              <span className={`h-0.5 flex-1 mx-1 rounded-full ${idx < activeIdx ? "bg-[#9D5CDB]" : "bg-purple-100"}`} />
+              <span
+                className={`h-0.5 flex-1 mx-1 rounded-full transition-colors ${
+                  idx < activeIdx ? STEP_LINE_CLASSES[step.name] : "bg-purple-100"
+                }`}
+              />
             )}
           </div>
         );
@@ -172,13 +197,13 @@ function OrderCard({ order, onCancel }: { order: any; onCancel: (order: any) => 
             return (
               <span
                 key={idx}
-                className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl border border-purple-100 bg-gradient-to-br from-purple-50 to-amber-50"
+                className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl border border-purple-100 bg-purple-50"
                 title={item.product?.name}
               >
                 {src ? (
                   <img src={src} alt={item.product?.name ?? "Item"} className="h-full w-full object-cover" loading="lazy" />
                 ) : (
-                  <span className="flex h-full w-full items-center justify-center text-[#9D5CDB]">
+                  <span className="flex h-full w-full items-center justify-center text-purple-300">
                     <ShoppingBag className="w-4 h-4" />
                   </span>
                 )}
@@ -187,7 +212,7 @@ function OrderCard({ order, onCancel }: { order: any; onCancel: (order: any) => 
           })
         )}
         {overflow > 0 && (
-          <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-[#2F0538] text-[11px] font-bold text-white">
+          <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-[#9D5CDB] text-[11px] font-bold text-white">
             +{overflow}
           </span>
         )}
@@ -200,7 +225,7 @@ function OrderCard({ order, onCancel }: { order: any; onCancel: (order: any) => 
       <div className="flex items-center gap-2 border-t border-purple-50 p-4 bg-purple-50/30">
         <Link
           href={getOrderViewHref(order)}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2F0538] hover:bg-[#4A1054] text-white text-xs font-bold transition-all active:scale-[0.98]"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-purple-50 hover:bg-purple-900 hover:text-white text-purple-700 text-xs font-bold rounded-lg transition-colors duration-300"
         >
           View Details
           <ArrowRight className="w-3.5 h-3.5" />
@@ -208,7 +233,7 @@ function OrderCard({ order, onCancel }: { order: any; onCancel: (order: any) => 
         {isCancellable && (
           <button
             onClick={() => onCancel(order)}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50 transition-all active:scale-[0.98]"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-slate-200 text-slate-500 text-xs font-bold hover:bg-slate-100 transition-colors duration-300"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Cancel</span>
@@ -260,12 +285,15 @@ export default function OrdersPage() {
 
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-[#FCFAF6] flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         <Header />
         <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-4">
           <AlertCircle className="w-8 h-8 text-purple-300" />
           <p className="font-display text-lg font-semibold text-slate-900">Please log in to view your orders</p>
-          <Link href="/login" className="px-5 py-2.5 rounded-xl bg-[#2F0538] text-white text-sm font-bold">
+          <Link
+            href="/login"
+            className="px-5 py-2.5 bg-[#9D5CDB] hover:bg-[#8545C2] text-white text-sm font-bold rounded-xl shadow-lg shadow-[#9D5CDB]/30 transition-all duration-300"
+          >
             Go to Login
           </Link>
         </div>
@@ -275,7 +303,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FCFAF6]">
+    <div className="min-h-screen bg-white">
       <style jsx global>{`
         @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap");
         .font-display {
@@ -288,16 +316,15 @@ export default function OrdersPage() {
 
       <section className="relative overflow-hidden bg-gradient-to-br from-[#2F0538] via-[#1E0124] to-[#4A1054] text-white py-16 sm:py-20">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-[#9D5CDB] filter blur-3xl"></div>
-          <div className="absolute -bottom-32 -right-32 w-80 h-80 rounded-full bg-[#f59e0b] filter blur-3xl"></div>
+          <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-[#9D5CDB] filter blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-32 -right-32 w-80 h-80 rounded-full bg-[#9D5CDB] filter blur-3xl animate-pulse"></div>
         </div>
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 relative z-10">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-purple-200/70">
-            <ReceiptText className="w-3.5 h-3.5" />
-            Order Ledger
-          </span>
-          <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight mt-2">My Orders</h1>
-          <p className="text-purple-200/80 text-sm mt-2">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm text-[#C292F0] font-semibold text-xs tracking-[0.15em] uppercase border border-white/10">
+            <span>Order Ledger</span>
+          </div>
+          <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight mt-4">My Orders</h1>
+          <p className="text-purple-100/90 text-sm mt-2">
             {myOrders.length} order{myOrders.length === 1 ? "" : "s"}
           </p>
         </div>
@@ -318,19 +345,22 @@ export default function OrdersPage() {
               />
             </div>
             <div className="flex flex-wrap gap-1.5 bg-purple-50/60 p-1 rounded-xl border border-purple-100 self-start">
-              {STATUS_FILTERS.map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`px-3.5 py-2 rounded-lg text-xs font-bold capitalize transition-all duration-200 ${
-                    statusFilter === status
-                      ? "bg-[#2F0538] text-white shadow-sm"
-                      : "text-slate-500 hover:text-purple-700 hover:bg-white/70"
-                  }`}
-                >
-                  {status}
-                </button>
-              ))}
+              {STATUS_FILTERS.map((status) => {
+                const active = statusFilter === status;
+                return (
+                  <button
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={`px-3.5 py-1.5 text-xs font-bold capitalize rounded-lg transition-colors duration-300 ${
+                      active
+                        ? "bg-purple-900 text-white"
+                        : "bg-purple-50 hover:bg-purple-900 hover:text-white text-purple-700"
+                    }`}
+                  >
+                    {status}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -367,12 +397,12 @@ export default function OrdersPage() {
             className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 text-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
-              <AlertCircle className="w-6 h-6 text-red-500" />
+            <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-6 h-6 text-slate-500" />
             </div>
             <h3 className="font-display text-lg font-semibold text-slate-900 mb-2">Cancel this order?</h3>
             <p className="text-sm text-slate-500 mb-1">This will mark your order as cancelled.</p>
-            <p className="text-xs text-red-500 font-semibold mb-6">This action cannot be undone.</p>
+            <p className="text-xs text-slate-500 font-semibold mb-6">This action cannot be undone.</p>
 
             <div className="flex items-center gap-3">
               <button
@@ -385,7 +415,7 @@ export default function OrdersPage() {
               <button
                 onClick={handleConfirmCancel}
                 disabled={cancelling}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition disabled:opacity-60"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#2F0538] hover:bg-[#4A1054] text-white text-sm font-bold transition disabled:opacity-60"
               >
                 {cancelling ? (
                   <>
