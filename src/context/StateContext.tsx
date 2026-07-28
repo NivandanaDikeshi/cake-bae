@@ -1,6 +1,10 @@
 "use client";
 
+<<<<<<< HEAD
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+=======
+import React, { createContext, useContext, useState, useEffect } from "react";
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
 import { db as firebaseDb, auth } from "@/lib/firebase";
 const db = firebaseDb as any;
 import {
@@ -233,6 +237,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const isFirebaseActive = !!db;
 
+<<<<<<< HEAD
   // FIX: keep a ref that always points at the latest `roles` array, so the
   // Firebase auth listener (set up once below) can read fresh roles without
   // needing to be re-subscribed every time `roles` changes. Re-subscribing
@@ -243,6 +248,8 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     rolesRef.current = roles;
   }, [roles]);
 
+=======
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
   // Re-fetch orders from Firestore (or localStorage fallback) on demand.
   // This is critical to call right after login/auth-state resolves, because
   // the initial page-load fetch can run before auth is ready (and can be
@@ -411,6 +418,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loadState();
   }, []);
 
+<<<<<<< HEAD
   // Listen to Firebase Auth state changes.
   //
   // FIX: this effect used to have `[roles]` as its dependency array, which
@@ -428,6 +436,9 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // `rolesRef.current` inside the callback instead of closing over the
   // `roles` state directly, so the listener always sees fresh roles without
   // needing to be recreated.
+=======
+  // Listen to Firebase Auth state changes
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
   useEffect(() => {
     if (!auth) return;
 
@@ -457,7 +468,11 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }
 
             setCurrentUser(u);
+<<<<<<< HEAD
             const r = rolesRef.current.find((role) => role.id === u.roleId) || null;
+=======
+            const r = roles.find((role) => role.id === u.roleId) || null;
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
             setCurrentRole(r);
             localStorage.setItem("cb_currentUser", JSON.stringify(u));
           } else {
@@ -493,7 +508,11 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     return () => unsubscribe();
+<<<<<<< HEAD
   }, []); // 👈 run once on mount only — do NOT depend on `roles` here
+=======
+  }, [roles]);
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
 
   const loadLocalStorage = (storedUser: string | null, storedCart: string | null) => {
     const storedProducts = localStorage.getItem("cb_products");
@@ -874,6 +893,19 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     saveToLocalStorage("cb_users", updated);
   };
 
+<<<<<<< HEAD
+=======
+  // Auth actions
+  //
+  // NOTE: this function ONLY signs in against an existing Firebase Auth
+  // account. It must never silently create accounts on a failed sign-in —
+  // a previous version of this function did that (auto-provisioning a new
+  // Firebase Auth user, and even granting Super Admin, whenever sign-in
+  // failed and certain email/role conditions were met). That was a serious
+  // privilege-escalation and account-hijacking risk and has been removed.
+  // Use addUser() (admin-initiated) or the forgot-password flow to create
+  // or recover accounts instead.
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
   const login = async (email: string, password: string) => {
     if (!auth) {
       // Offline fallback: check in local state

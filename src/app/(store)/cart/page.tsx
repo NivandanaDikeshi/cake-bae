@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Trash2, ShoppingBag, Plus, Minus, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAppState } from "@/context/StateContext";
 
+<<<<<<< HEAD
 // ── Brand palette (Cake Bae) — used identically on every page ──────────
 // Aubergine #2F0538  — deep bg / primary dark surface
 // Plum      #4A1054  — gradient partner / hover depth
@@ -15,6 +16,8 @@ import { useAppState } from "@/context/StateContext";
 // Fonts: Fraunces (display) + Inter (body) — used site-wide, see BRAND_FONTS.
 // ──────────────────────────────────────────────────────────────────────
 
+=======
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
 export default function CartPage() {
   const { cart, updateCartQuantity, removeFromCart, getCartTotal } = useAppState();
 
@@ -22,6 +25,7 @@ export default function CartPage() {
 
   if (cart.length === 0) {
     return (
+<<<<<<< HEAD
       <div className="min-h-screen bg-[#F7F1FB]">
       <style jsx global>{`
         @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap");
@@ -38,12 +42,26 @@ export default function CartPage() {
         <div className="space-y-2">
           <h2 className="font-display text-2xl font-semibold text-[#241129]">Your Cart is Empty</h2>
           <p className="text-[#241129]/60 text-sm max-w-sm mx-auto leading-relaxed">
+=======
+      <div className="min-h-screen bg-[#F6F1FE]">
+      <div className="mx-auto max-w-2xl px-4 py-24 sm:px-6 lg:px-8 text-center space-y-6 font-sans">
+        <div className="w-20 h-20 bg-[#F0E8FD] rounded-full flex items-center justify-center mx-auto text-[#9D5CDB] ring-8 ring-[#F6F1FE]">
+          <ShoppingBag className="w-10 h-10" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="font-display text-2xl font-bold text-[#241436]">Your Cart is Empty</h2>
+          <p className="text-[#6B6178] text-sm max-w-sm mx-auto leading-relaxed">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
             You haven't added any cakes or desserts to your order yet. Take a look at our sweet catalog!
           </p>
         </div>
         <Link
           href="/shop"
+<<<<<<< HEAD
           className="inline-flex items-center gap-2 px-6 py-3 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-semibold text-sm rounded-xl shadow-md shadow-[#9D5CDB]/25 transition duration-300 hover:-translate-y-0.5"
+=======
+          className="inline-flex items-center gap-2 px-6 py-3 bg-[#9D5CDB] hover:bg-[#8545C2] text-white font-semibold text-sm rounded-xl shadow-md shadow-[#9D5CDB]/25 transition duration-300 hover:-translate-y-0.5"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Browse Cakes Catalog</span>
@@ -54,6 +72,7 @@ export default function CartPage() {
   }
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-[#F7F1FB]">
     <style jsx global>{`
       @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap");
@@ -69,6 +88,15 @@ export default function CartPage() {
           Your Order Cart
         </h1>
         <p className="mt-1.5 text-sm text-[#241129]/60">
+=======
+    <div className="min-h-screen bg-[#F6F1FE]">
+    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 font-sans">
+      <div className="mb-10">
+        <h1 className="font-display text-3xl font-bold text-[#241436] tracking-tight">
+          Your Order Cart
+        </h1>
+        <p className="mt-1.5 text-sm text-[#6B6178]">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
           {cart.length} item{cart.length === 1 ? "" : "s"} ready for checkout
         </p>
       </div>
@@ -79,11 +107,19 @@ export default function CartPage() {
           {cart.map((item, idx) => (
             <div
               key={idx}
+<<<<<<< HEAD
               className="bg-white border border-[#9D5CDB]/15 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-[#9D5CDB]/25 transition-all duration-300 flex flex-col sm:flex-row gap-5 items-center justify-between"
             >
               {/* Product Info */}
               <div className="flex gap-4 items-center w-full sm:w-auto">
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-white flex-shrink-0 border border-[#9D5CDB]/15 ring-1 ring-transparent hover:ring-[#9D5CDB]/25 transition">
+=======
+              className="bg-white border border-[#E7DBFB] rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-[#D8C4F7] transition-all duration-300 flex flex-col sm:flex-row gap-5 items-center justify-between"
+            >
+              {/* Product Info */}
+              <div className="flex gap-4 items-center w-full sm:w-auto">
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-white flex-shrink-0 border border-[#F0E8FD] ring-1 ring-transparent hover:ring-[#D8C4F7] transition">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={item.product.image}
@@ -95,17 +131,30 @@ export default function CartPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
+<<<<<<< HEAD
                   <h3 className="font-display text-base font-semibold text-[#241129]">{item.product.name}</h3>
                   <div className="flex flex-wrap gap-2 text-[10px] font-semibold">
                     <span className="bg-[#F7F1FB] text-[#9D5CDB] px-2 py-0.5 rounded-md border border-[#9D5CDB]/20">
                       Size: {item.selectedSize}
                     </span>
                     <span className="bg-[#241129]/[0.04] text-[#241129]/60 px-2 py-0.5 rounded-md border border-[#241129]/10">
+=======
+                  <h3 className="font-display text-base font-bold text-[#241436]">{item.product.name}</h3>
+                  <div className="flex flex-wrap gap-2 text-[10px] font-semibold">
+                    <span className="bg-[#F0E8FD] text-[#8545C2] px-2 py-0.5 rounded-md border border-[#E1D2FA]">
+                      Size: {item.selectedSize}
+                    </span>
+                    <span className="bg-[#F4F2F7] text-[#6B6178] px-2 py-0.5 rounded-md border border-[#EAE6EF]">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                       Flavour: {item.selectedFlavour}
                     </span>
                   </div>
                   {item.customMessage && (
+<<<<<<< HEAD
                     <p className="text-xs text-[#4A1054] italic">
+=======
+                    <p className="text-xs text-[#B7791F] italic">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                       Message: "{item.customMessage}"
                     </p>
                   )}
@@ -113,20 +162,36 @@ export default function CartPage() {
               </div>
 
               {/* Price & Quantity Controls */}
+<<<<<<< HEAD
               <div className="flex items-center justify-between sm:justify-end gap-8 w-full sm:w-auto pt-4 sm:pt-0 border-t sm:border-t-0 border-[#9D5CDB]/15">
                 {/* Quantity Editor */}
                 <div className="flex items-center border border-[#9D5CDB]/20 rounded-lg overflow-hidden bg-white divide-x divide-[#9D5CDB]/15">
                   <button
                     onClick={() => updateCartQuantity(idx, item.quantity - 1)}
                     className="p-2 text-[#241129]/60 hover:bg-[#F7F1FB] hover:text-[#9D5CDB] active:scale-95 transition"
+=======
+              <div className="flex items-center justify-between sm:justify-end gap-8 w-full sm:w-auto pt-4 sm:pt-0 border-t sm:border-t-0 border-[#F0E8FD]">
+                {/* Quantity Editor */}
+                <div className="flex items-center border border-[#E1D2FA] rounded-lg overflow-hidden bg-white divide-x divide-[#F0E8FD]">
+                  <button
+                    onClick={() => updateCartQuantity(idx, item.quantity - 1)}
+                    className="p-2 text-[#6B6178] hover:bg-[#F0E8FD] hover:text-[#8545C2] active:scale-95 transition"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                     title="Decrease quantity"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
+<<<<<<< HEAD
                   <span className="w-9 text-center text-xs font-bold text-[#241129]">{item.quantity}</span>
                   <button
                     onClick={() => updateCartQuantity(idx, item.quantity + 1)}
                     className="p-2 text-[#241129]/60 hover:bg-[#F7F1FB] hover:text-[#9D5CDB] active:scale-95 transition"
+=======
+                  <span className="w-9 text-center text-xs font-bold text-[#241436]">{item.quantity}</span>
+                  <button
+                    onClick={() => updateCartQuantity(idx, item.quantity + 1)}
+                    className="p-2 text-[#6B6178] hover:bg-[#F0E8FD] hover:text-[#8545C2] active:scale-95 transition"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                     title="Increase quantity"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -135,8 +200,13 @@ export default function CartPage() {
 
                 {/* Subtotal */}
                 <div className="text-right">
+<<<<<<< HEAD
                   <span className="text-xs text-[#241129]/40 block">Total</span>
                   <span className="font-display text-base font-semibold text-[#241129]">
+=======
+                  <span className="text-xs text-[#B3A3D6] block">Total</span>
+                  <span className="font-display text-base font-bold text-[#241436]">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                     Rs. {totalAmount.toLocaleString()}
                   </span>
                 </div>
@@ -144,7 +214,11 @@ export default function CartPage() {
                 {/* Delete button */}
                 <button
                   onClick={() => removeFromCart(idx)}
+<<<<<<< HEAD
                   className="p-2.5 text-[#241129]/40 hover:text-[#C4433C] rounded-lg hover:bg-[#FDF3F2] active:scale-95 transition"
+=======
+                  className="p-2.5 text-[#B3A3D6] hover:text-[#C4433C] rounded-lg hover:bg-[#FDF3F2] active:scale-95 transition"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                   title="Remove item"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -156,7 +230,11 @@ export default function CartPage() {
           {/* Continue shopping link */}
           <Link
             href="/shop"
+<<<<<<< HEAD
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#9D5CDB] hover:underline pt-2 group"
+=======
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8545C2] hover:underline pt-2 group"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
             <span>Continue shopping for more cakes</span>
@@ -165,12 +243,18 @@ export default function CartPage() {
 
         {/* Right: Cart Summary Panel */}
         <div className="lg:col-span-4">
+<<<<<<< HEAD
           <div className="bg-white border border-[#9D5CDB]/15 rounded-2xl p-6 shadow-sm space-y-6 lg:sticky lg:top-28">
             <h3 className="font-display text-lg font-semibold text-[#241129] border-b border-[#9D5CDB]/15 pb-4">
+=======
+          <div className="bg-white border border-[#E7DBFB] rounded-2xl p-6 shadow-sm space-y-6 lg:sticky lg:top-28">
+            <h3 className="font-display text-lg font-bold text-[#241436] border-b border-[#F0E8FD] pb-4">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
               Order Summary
             </h3>
 
             <div className="space-y-4">
+<<<<<<< HEAD
               <div className="flex justify-between text-sm text-[#241129]/60">
                 <span>Items Subtotal</span>
                 <span className="font-semibold text-[#241129]">Rs. {totalAmount.toLocaleString()}</span>
@@ -183,6 +267,20 @@ export default function CartPage() {
               <div className="border-t border-dashed border-[#9D5CDB]/20 pt-4 flex justify-between items-baseline">
                 <span className="text-base font-semibold text-[#241129]">Order Subtotal</span>
                 <span className="font-display text-2xl font-semibold text-[#9D5CDB]">
+=======
+              <div className="flex justify-between text-sm text-[#6B6178]">
+                <span>Items Subtotal</span>
+                <span className="font-semibold text-[#241436]">Rs. {totalAmount.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm text-[#6B6178]">
+                <span>Estimated Delivery Fee</span>
+                <span className="font-semibold text-[#241436]">Calculated at checkout</span>
+              </div>
+
+              <div className="border-t border-dashed border-[#E1D2FA] pt-4 flex justify-between items-baseline">
+                <span className="text-base font-semibold text-[#241436]">Order Subtotal</span>
+                <span className="font-display text-2xl font-bold text-[#9D5CDB]">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                   Rs. {totalAmount.toLocaleString()}
                 </span>
               </div>
@@ -190,13 +288,21 @@ export default function CartPage() {
 
             <Link
               href="/checkout"
+<<<<<<< HEAD
               className="w-full inline-flex items-center justify-center gap-2 py-4 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-semibold rounded-xl shadow-md shadow-[#9D5CDB]/25 transition duration-300 hover:-translate-y-0.5 text-sm"
+=======
+              className="w-full inline-flex items-center justify-center gap-2 py-4 bg-[#9D5CDB] hover:bg-[#8545C2] text-white font-semibold rounded-xl shadow-md shadow-[#9D5CDB]/25 transition duration-300 hover:-translate-y-0.5 text-sm"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
             >
               <span>Proceed to Checkout</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
+<<<<<<< HEAD
             <p className="text-[10px] text-center text-[#241129]/40 leading-relaxed">
+=======
+            <p className="text-[10px] text-center text-[#B3A3D6] leading-relaxed">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
               By proceeding, you agree to our 24-48 hour lead-time requirements for fresh custom cakes.
             </p>
           </div>

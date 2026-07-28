@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ShieldAlert, ArrowLeft, Plus, Minus, ShoppingBag, Clock, CheckCircle2 } from "lucide-react";
 import { useAppState, Product } from "@/context/StateContext";
 
+<<<<<<< HEAD
 // ── Brand palette (Cake Bae) — used identically on every page ──────────
 // Aubergine #2F0538  — deep bg / primary dark surface
 // Plum      #4A1054  — gradient partner / hover depth
@@ -16,6 +17,8 @@ import { useAppState, Product } from "@/context/StateContext";
 // Fonts: Fraunces (display) + Inter (body) — used site-wide, see BRAND_FONTS.
 // ──────────────────────────────────────────────────────────────────────
 
+=======
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
 export default function ProductDetailsPage() {
   const { id } = useParams() as { id: string };
   const { products, addToCart } = useAppState();
@@ -72,6 +75,7 @@ export default function ProductDetailsPage() {
 
   if (!product) {
     return (
+<<<<<<< HEAD
       <div className="light mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 text-center space-y-4 bg-white">
         <style jsx global>{`
           @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap");
@@ -84,11 +88,21 @@ export default function ProductDetailsPage() {
         <ShieldAlert className="w-12 h-12 text-[#9D5CDB] mx-auto animate-pulse" />
         <h2 className="font-display text-xl font-semibold text-[#2F0538]">Cake not found</h2>
         <p className="text-sm text-[#241129]/60">
+=======
+      <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 text-center space-y-4">
+        <ShieldAlert className="w-12 h-12 text-[#9D5CDB] mx-auto animate-pulse" />
+        <h2 className="text-xl font-bold text-[#2F0538]">Cake not found</h2>
+        <p className="text-sm text-slate-500">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
           The cake you are looking for might have been removed or doesn't exist.
         </p>
         <Link
           href="/shop"
+<<<<<<< HEAD
           className="inline-flex items-center gap-1.5 font-bold text-[#9D5CDB] hover:underline text-sm"
+=======
+          className="inline-flex items-center gap-1.5 font-bold text-[#8545C2] hover:underline text-sm"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Catalog</span>
@@ -118,6 +132,7 @@ export default function ProductDetailsPage() {
   const handleQuantityDecrease = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
   return (
+<<<<<<< HEAD
     <div className="light mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 bg-white">
       <style jsx global>{`
         @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap");
@@ -132,15 +147,29 @@ export default function ProductDetailsPage() {
       <Link
         href="/shop"
         className="inline-flex items-center gap-1.5 text-xs font-bold text-[#241129]/60 hover:text-[#9D5CDB] mb-8 transition"
+=======
+    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      {/* Back Button */}
+      <Link
+        href="/shop"
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#9D5CDB] mb-8 transition"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Back to online shop</span>
       </Link>
 
+<<<<<<< HEAD
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 bg-white">
         {/* Left: Product Image */}
         <div className="lg:col-span-6 bg-white">
           <div className="relative aspect-square rounded-3xl overflow-hidden bg-[#F7F1FB] border border-[#9D5CDB]/15 shadow-sm">
+=======
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {/* Left: Product Image */}
+        <div className="lg:col-span-6">
+          <div className="relative aspect-square rounded-3xl overflow-hidden bg-purple-50 border border-purple-100 shadow-sm">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={product.image}
@@ -151,13 +180,18 @@ export default function ProductDetailsPage() {
                   "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&auto=format&fit=crop&q=80";
               }}
             />
+<<<<<<< HEAD
             <span className="absolute top-4 right-4 bg-white/90 backdrop-blur-xs text-[#9D5CDB] font-bold text-xs px-3 py-1 rounded-full shadow-sm border border-[#9D5CDB]/15">
+=======
+            <span className="absolute top-4 right-4 bg-white/90 backdrop-blur-xs text-[#8545C2] font-bold text-xs px-3 py-1 rounded-full shadow-sm border border-purple-100">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
               {product.rating} ★ Rating
             </span>
           </div>
         </div>
 
         {/* Right: Product Customization Form */}
+<<<<<<< HEAD
         <div className="lg:col-span-6 space-y-6 bg-white">
           <div className="space-y-2">
             <span className="text-xs font-bold text-[#9D5CDB] tracking-wider uppercase bg-[#F7F1FB] px-2.5 py-1 rounded-md border border-[#9D5CDB]/15 inline-block">
@@ -174,13 +208,37 @@ export default function ProductDetailsPage() {
               <span
                 key={unitPrice}
                 className="text-2xl font-bold text-[#2F0538] transition-all duration-200 animate-[fadeIn_0.2s_ease-in-out]"
+=======
+        <div className="lg:col-span-6 space-y-6">
+          <div className="space-y-2">
+            <span className="text-xs font-bold text-[#8545C2] tracking-wider uppercase bg-purple-50 px-2.5 py-1 rounded-md border border-purple-100 inline-block">
+              {product.category}
+            </span>
+            <h1 className="text-3xl font-black text-[#2F0538]">{product.name}</h1>
+            <p className="text-base text-slate-500 leading-relaxed">{product.description}</p>
+          </div>
+
+          {/* Pricing & Prep Time — updates automatically as size/flavour change */}
+          <div className="flex items-center gap-6 p-4 bg-purple-50/50 rounded-2xl border border-purple-100">
+            <div>
+              <span className="text-xs text-slate-500 font-medium block">Price</span>
+              <span
+                key={unitPrice}
+                className="text-2xl font-black text-[#2F0538] transition-all duration-200 animate-[fadeIn_0.2s_ease-in-out]"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
               >
                 Rs. {unitPrice.toLocaleString()}
               </span>
             </div>
+<<<<<<< HEAD
             <div className="h-8 w-px bg-[#9D5CDB]/20"></div>
             <div>
               <span className="text-xs text-[#241129]/60 font-medium block">Lead Time Required</span>
+=======
+            <div className="h-8 w-px bg-purple-200"></div>
+            <div>
+              <span className="text-xs text-slate-500 font-medium block">Lead Time Required</span>
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
               <span className="text-sm font-semibold text-[#2F0538] flex items-center gap-1.5 mt-0.5">
                 <Clock className="w-4 h-4 text-[#9D5CDB]" />
                 {product.leadTime}
@@ -188,7 +246,11 @@ export default function ProductDetailsPage() {
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="space-y-5 pt-4 border-t border-[#9D5CDB]/15">
+=======
+          <div className="space-y-5 pt-4 border-t border-purple-100">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
             {/* Size Selector */}
             {product.sizes.length > 0 && (
               <div className="space-y-2">
@@ -201,7 +263,11 @@ export default function ProductDetailsPage() {
                       className={`px-4 py-2 text-xs font-bold rounded-xl border transition ${
                         selectedSize === size
                           ? "bg-[#9D5CDB] border-[#9D5CDB] text-white shadow-sm"
+<<<<<<< HEAD
                           : "bg-white border-[#9D5CDB]/15 text-[#241129] hover:bg-[#F7F1FB]/50"
+=======
+                          : "bg-white border-purple-100 text-slate-700 hover:bg-purple-50/50"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                       }`}
                     >
                       {size}
@@ -228,7 +294,11 @@ export default function ProductDetailsPage() {
                       className={`px-4 py-2.5 text-xs font-bold rounded-xl border transition ${
                         selectedFlavour === flavour
                           ? "bg-[#2F0538] border-[#2F0538] text-white shadow-sm"
+<<<<<<< HEAD
                           : "bg-white border-[#9D5CDB]/15 text-[#241129] hover:bg-[#F7F1FB]/50"
+=======
+                          : "bg-white border-purple-100 text-slate-700 hover:bg-purple-50/50"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                       }`}
                     >
                       {flavour}
@@ -249,7 +319,11 @@ export default function ProductDetailsPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-bold text-[#2F0538]">Writing on Cake (Optional)</label>
+<<<<<<< HEAD
                 <span className="text-[10px] text-[#241129]/40 font-medium">Max 30 characters</span>
+=======
+                <span className="text-[10px] text-slate-400 font-medium">Max 30 characters</span>
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
               </div>
               <input
                 type="text"
@@ -257,16 +331,27 @@ export default function ProductDetailsPage() {
                 maxLength={30}
                 value={customMessage}
                 onChange={(e) => setCustomMessage(e.target.value)}
+<<<<<<< HEAD
                 className="w-full bg-white border border-[#9D5CDB]/20 rounded-xl py-3 px-4 text-sm text-[#2F0538] placeholder-[#241129]/40 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/20 focus:border-[#9D5CDB] transition"
+=======
+                className="w-full bg-white border border-purple-200 rounded-xl py-3 px-4 text-sm text-[#2F0538] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-[#9D5CDB] transition"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
               />
             </div>
 
             {/* Quantity and Actions */}
             <div className="flex items-center gap-4 pt-4">
+<<<<<<< HEAD
               <div className="flex items-center border border-[#9D5CDB]/20 rounded-xl overflow-hidden bg-white">
                 <button
                   onClick={handleQuantityDecrease}
                   className="p-3 text-[#241129]/60 hover:bg-[#F7F1FB] transition"
+=======
+              <div className="flex items-center border border-purple-200 rounded-xl overflow-hidden bg-white">
+                <button
+                  onClick={handleQuantityDecrease}
+                  className="p-3 text-slate-500 hover:bg-purple-50 transition"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                   title="Decrease quantity"
                 >
                   <Minus className="w-4 h-4" />
@@ -274,7 +359,11 @@ export default function ProductDetailsPage() {
                 <span className="w-10 text-center text-sm font-bold text-[#2F0538]">{quantity}</span>
                 <button
                   onClick={handleQuantityIncrease}
+<<<<<<< HEAD
                   className="p-3 text-[#241129]/60 hover:bg-[#F7F1FB] transition"
+=======
+                  className="p-3 text-slate-500 hover:bg-purple-50 transition"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                   title="Increase quantity"
                 >
                   <Plus className="w-4 h-4" />
@@ -287,7 +376,11 @@ export default function ProductDetailsPage() {
                 className={`flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-bold text-sm shadow-md transition transform ${
                   addedMessage
                     ? "bg-[#2F0538] text-white translate-y-0"
+<<<<<<< HEAD
                     : "bg-[#9D5CDB] hover:bg-[#4A1054] text-white hover:-translate-y-0.5 shadow-[#9D5CDB]/25"
+=======
+                    : "bg-[#9D5CDB] hover:bg-[#8545C2] text-white hover:-translate-y-0.5 shadow-purple-500/25"
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                 }`}
               >
                 {addedMessage ? (
@@ -306,10 +399,17 @@ export default function ProductDetailsPage() {
 
             {/* Total Price Summary */}
             <div className="flex items-center justify-between pt-2 text-sm">
+<<<<<<< HEAD
               <span className="text-[#241129]/60 font-medium">
                 Total for {quantity} {quantity > 1 ? "items" : "item"}
               </span>
               <span className="text-lg font-bold text-[#2F0538]">
+=======
+              <span className="text-slate-500 font-medium">
+                Total for {quantity} {quantity > 1 ? "items" : "item"}
+              </span>
+              <span className="text-lg font-black text-[#2F0538]">
+>>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                 Rs. {totalPrice.toLocaleString()}
               </span>
             </div>
