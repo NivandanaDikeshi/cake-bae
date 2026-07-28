@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Cake, User, Lock, ShieldAlert, CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
 import { useAppState } from "@/context/StateContext";
 
 export default function AdminLoginPage() {
-  const { login, currentUser, currentRole, roles, logout } = useAppState();
+  const { login, roles, logout } = useAppState();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -16,12 +16,10 @@ export default function AdminLoginPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect to dashboard only if a validated staff/admin session already exists.
-  useEffect(() => {
-    if (currentUser && currentRole) {
-      router.push("/admin/dashboard");
-    }
-  }, [currentUser, currentRole, router]);
+  // No auto-redirect / no persisted-session check here on purpose:
+  // this page should always show the login form fresh and require the
+  // person to enter their email and password every time, rather than
+  // silently signing them in from an existing session.
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

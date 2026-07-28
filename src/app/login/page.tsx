@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Cake, User, Lock, ShieldAlert, CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
 import { useAppState } from "@/context/StateContext";
 
 export default function UserLoginPage() {
-  const { login, logout, currentUser, roles } = useAppState();
+  const { login, roles } = useAppState();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -22,20 +22,10 @@ export default function UserLoginPage() {
     return roles.some((r) => r.id === user.roleId);
   };
 
-  // Redirect if already logged in — but only regular users.
-  // Staff/admin accounts are not allowed to use this customer login,
-  // so if one is somehow already signed in here, sign them out.
-  useEffect(() => {
-    if (!currentUser) return;
-
-    if (isStaffUser(currentUser)) {
-      setError("This login is for customer accounts only. Please use the admin login to access the dashboard.");
-      logout?.();
-      return;
-    }
-
-    router.push("/");
-  }, [currentUser, roles, router]);
+  // No auto-redirect / no persisted-session check here on purpose:
+  // this page should always show the login form fresh and require the
+  // person to enter their email and password every time, rather than
+  // silently signing them in from an existing session.
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,8 +59,10 @@ export default function UserLoginPage() {
 
       if (loggedInUser) {
         // Block staff/admin accounts from using the customer login.
+        // We don't log them out here — that could sign them out of an
+        // admin session open elsewhere. We just refuse to proceed on
+        // this page.
         if (isStaffUser(loggedInUser)) {
-          await logout?.();
           setError("This login is for customer accounts only. Please use the admin login to access the dashboard.");
           setIsSubmitting(false);
           return;
