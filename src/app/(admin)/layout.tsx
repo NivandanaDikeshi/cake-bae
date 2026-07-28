@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -23,6 +23,18 @@ import {
 } from "lucide-react";
 import { useAppState } from "@/context/StateContext";
 
+// How long `currentUser` must remain null before we treat it as a real
+// logout and redirect. This protects against transient null states that
+// are NOT a real logout, e.g.:
+//   - StateProvider remounting on navigation (isLoaded resets, currentUser
+//     resets to its initial null value before loadState()/onAuthStateChanged
+//     finish re-resolving it)
+//   - onAuthStateChanged briefly being mid-flight while it fetches the
+//     Firestore user doc after a CRUD call touches auth-adjacent state
+// A real logout (explicit logout(), inactive account, expired session)
+// stays null well past this window, so the redirect still fires correctly.
+const LOGOUT_REDIRECT_DELAY_MS = 800;
+
 export default function AdminLayout({
   children,
 }: {
@@ -34,24 +46,84 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
+  // Tracks whether we've EVER seen a currentUser in this mount. Used so we
+  // don't show a "not authenticated" flash for a brand-new visitor who is
+  // genuinely logged out (no debounce needed there — nothing to protect),
+  // while still debouncing the redirect for a user who WAS authenticated
+  // and had currentUser drop out transiently.
+  const hasSeenUserRef = useRef(false);
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Redirect to login if not authenticated
   useEffect(() => {
-    if (isClient && !currentUser) {
-      router.push("/admin/login");
+    if (currentUser) {
+      hasSeenUserRef.current = true;
     }
+  }, [currentUser]);
+
+  // Redirect to login if not authenticated — debounced to survive
+  // transient currentUser=null blips without logging the user out.
+  useEffect(() => {
+    if (!isClient) return;
+
+    // Always clear any pending redirect first; if currentUser is present
+    // again, this cancels a scheduled false-positive redirect.
+    if (redirectTimeoutRef.current) {
+      clearTimeout(redirectTimeoutRef.current);
+      redirectTimeoutRef.current = null;
+    }
+
+    if (!currentUser) {
+      const delay = hasSeenUserRef.current ? LOGOUT_REDIRECT_DELAY_MS : 0;
+      redirectTimeoutRef.current = setTimeout(() => {
+        router.push("/admin/login");
+      }, delay);
+    }
+
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+        redirectTimeoutRef.current = null;
+      }
+    };
   }, [currentUser, isClient, router]);
 
-  if (!isClient || !currentUser || !currentRole) {
+  // Only block render on currentUser — NOT on currentRole. currentRole is
+  // fetched in a second async step after currentUser resolves, so requiring
+  // it here caused the same spinner (and, combined with the old undebounced
+  // redirect effect, occasional redirects) on every navigation/CRUD call
+  // while the role doc re-fetched. We now render with a safe fallback role
+  // if currentRole hasn't resolved yet, instead of blocking the whole page.
+  if (!isClient || !currentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
       </div>
     );
   }
+
+  // Safe fallback while currentRole is still resolving, so the sidebar/nav
+  // can render immediately instead of waiting and re-blocking on every
+  // navigation. Real permissions apply as soon as currentRole loads.
+  const effectiveRole = currentRole || {
+    id: "",
+    name: "…",
+    status: "Active" as const,
+    isAdminPrivileges: false,
+    permissionCount: 0,
+    permissions: {
+      dashboard: [],
+      products: [],
+      orders: [],
+      customers: [],
+      calendar: [],
+      roles: [],
+      reports: [],
+    },
+  };
 
   // Sidebar Links
   const sidebarLinks = [
@@ -110,18 +182,18 @@ export default function AdminLayout({
 
   // Check if current user role has permissions for this path
   const hasPermissionForPath = (path: string) => {
-    if (currentRole.isAdminPrivileges) return true;
-    
+    if (effectiveRole.isAdminPrivileges) return true;
+
     const matchingLink = sidebarLinks.find((l) => path.startsWith(l.href));
     if (!matchingLink) return true; // generic paths allowed
 
-    const modulePermissions = currentRole.permissions[matchingLink.module as keyof typeof currentRole.permissions] || [];
+    const modulePermissions = effectiveRole.permissions[matchingLink.module as keyof typeof effectiveRole.permissions] || [];
     return modulePermissions.includes(matchingLink.action);
   };
 
   const allowedLinks = sidebarLinks.filter((link) => {
-    if (currentRole.isAdminPrivileges) return true;
-    const modulePermissions = currentRole.permissions[link.module as keyof typeof currentRole.permissions] || [];
+    if (effectiveRole.isAdminPrivileges) return true;
+    const modulePermissions = effectiveRole.permissions[link.module as keyof typeof effectiveRole.permissions] || [];
     return modulePermissions.includes(link.action);
   });
 
@@ -186,7 +258,7 @@ export default function AdminLayout({
             <div className="flex flex-col overflow-hidden">
               <span className="text-xs font-bold text-white truncate">{currentUser.name}</span>
               <span className="text-[10px] text-purple-300 font-semibold truncate bg-purple-900/60 px-1.5 py-0.5 rounded border border-purple-800 w-fit">
-                {currentRole.name}
+                {effectiveRole.name}
               </span>
             </div>
           </div>
@@ -227,10 +299,10 @@ export default function AdminLayout({
               </div>
               <span className="text-xs font-bold text-slate-700 hidden sm:inline">{currentUser.name}</span>
               <span className="text-[9px] font-bold bg-[#f59e0b] text-white px-2 py-0.5 rounded-full uppercase scale-90">
-                {currentRole.name}
+                {effectiveRole.name}
               </span>
             </div>
-            
+
             <Link
               href="/"
               className="hidden lg:inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:bg-purple-50 px-3.5 py-2 rounded-lg border border-purple-100 transition"
@@ -254,7 +326,7 @@ export default function AdminLayout({
                 <div className="space-y-1">
                   <h2 className="text-xl font-bold text-slate-800">Access Denied</h2>
                   <p className="text-sm text-slate-500">
-                    Your account role <span className="font-semibold text-purple-700">({currentRole.name})</span> does not have permissions to access the `{pathname.split("/").pop()}` module.
+                    Your account role <span className="font-semibold text-purple-700">({effectiveRole.name})</span> does not have permissions to access the `{pathname.split("/").pop()}` module.
                   </p>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
@@ -336,7 +408,7 @@ export default function AdminLayout({
                 <div className="flex flex-col overflow-hidden">
                   <span className="text-xs font-bold text-white truncate">{currentUser.name}</span>
                   <span className="text-[9px] text-purple-300 truncate font-semibold bg-purple-900/60 px-1 py-0.5 rounded">
-                    {currentRole.name}
+                    {effectiveRole.name}
                   </span>
                 </div>
               </div>

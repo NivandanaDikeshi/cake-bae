@@ -282,7 +282,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           productsSnap.forEach((doc) => {
             productsData.push({ id: doc.id, ...doc.data() } as Product);
           });
-          
+
           // Seed database if empty
           if (productsData.length === 0) {
             console.log("Seeding Firestore products...");
@@ -401,7 +401,31 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loadState();
   }, []);
 
-  // Listen to Firebase Auth state changes
+  // Listen to Firebase Auth state changes.
+  //
+  // IMPORTANT: this effect intentionally has an EMPTY dependency array ([]).
+  // It previously depended on [roles], which caused two serious bugs:
+  //
+  //   1. RACE ON INITIAL LOAD: `roles` starts as an empty array and is only
+  //      populated after the async Firestore fetch in loadState() resolves.
+  //      onAuthStateChanged can fire (with a persisted session) BEFORE that
+  //      fetch finishes, so `roles.find(...)` would run against an empty
+  //      array, resolve to undefined, and setCurrentRole(null) — which any
+  //      admin route guard reads as "not authenticated" and redirects to
+  //      login, even though the user really is logged in.
+  //
+  //   2. RACE ON CRUD: because the effect depended on [roles], every
+  //      addRole/updateRole/deleteRole call (which updates the `roles`
+  //      state) tore down and re-subscribed the ENTIRE onAuthStateChanged
+  //      listener. Re-subscribing briefly re-runs the async callback, which
+  //      could again resolve currentRole to null before catching up,
+  //      causing the "logout on CRUD/navigation" symptom.
+  //
+  // Fix: fetch the user's role doc directly from Firestore by roleId inside
+  // the callback, instead of reading from local `roles` state. This removes
+  // the dependency on `roles` entirely, so the listener is created once and
+  // stays stable for the lifetime of the app — CRUD operations and
+  // navigation no longer disturb it.
   useEffect(() => {
     if (!auth) return;
 
@@ -431,8 +455,25 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }
 
             setCurrentUser(u);
-            const r = roles.find((role) => role.id === u.roleId) || null;
-            setCurrentRole(r);
+
+            // Fetch the role doc directly instead of reading from local
+            // `roles` state — this avoids the empty-array race described
+            // above, since it doesn't matter whether loadState() has
+            // finished populating `roles` yet.
+            if (u.roleId) {
+              try {
+                const roleDocSnap = await getDoc(doc(db, "roles", u.roleId));
+                setCurrentRole(
+                  roleDocSnap.exists() ? ({ id: roleDocSnap.id, ...roleDocSnap.data() } as Role) : null
+                );
+              } catch (roleErr) {
+                console.error("Error fetching current user's role:", roleErr);
+                setCurrentRole(null);
+              }
+            } else {
+              setCurrentRole(null);
+            }
+
             localStorage.setItem("cb_currentUser", JSON.stringify(u));
           } else {
             // Fallback for user without firestore doc
@@ -467,7 +508,22 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     return () => unsubscribe();
-  }, [roles]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep currentRole in sync if the `roles` list changes later (e.g. an
+  // admin edits the current user's role permissions elsewhere in the app)
+  // WITHOUT re-subscribing the auth listener above. This only updates
+  // local state from data already loaded — it does not touch Firebase Auth
+  // and cannot trigger a logout.
+  useEffect(() => {
+    if (!currentUser || roles.length === 0) return;
+    const liveRole = roles.find((r) => r.id === currentUser.roleId);
+    if (liveRole && liveRole !== currentRole) {
+      setCurrentRole(liveRole);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roles, currentUser]);
 
   const loadLocalStorage = (storedUser: string | null, storedCart: string | null) => {
     const storedProducts = localStorage.getItem("cb_products");
@@ -566,7 +622,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const addProduct = async (pData: Omit<Product, "id">) => {
     const id = "p_" + Math.random().toString(36).substr(2, 6);
     const newProduct: Product = { ...pData, id };
-    
+
     if (db) {
       try {
         await setDoc(doc(db, "products", id), { ...pData });
@@ -765,17 +821,17 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
         const { initializeApp, deleteApp } = await import("firebase/app");
         const { getAuth, createUserWithEmailAndPassword } = await import("firebase/auth");
-        
+
         const secondaryAppName = "secondary_auth_app_" + Math.random().toString(36).substr(2, 6);
         const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
         const secondaryAuth = getAuth(secondaryApp);
-        
+
         const userCredential = await createUserWithEmailAndPassword(
           secondaryAuth,
           userData.email.trim(),
           password
         );
-        
+
         finalId = userCredential.user.uid;
         await deleteApp(secondaryApp);
       } catch (err) {
@@ -901,7 +957,18 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
 
         setCurrentUser(loggedInUser);
-        const r = roles.find((role) => role.id === loggedInUser.roleId) || null;
+
+        // Fetch role directly by id rather than relying on local `roles`
+        // state, which may not have loaded yet at login time.
+        let r: Role | null = null;
+        if (loggedInUser.roleId) {
+          try {
+            const roleDocSnap = await getDoc(doc(db, "roles", loggedInUser.roleId));
+            r = roleDocSnap.exists() ? ({ id: roleDocSnap.id, ...roleDocSnap.data() } as Role) : null;
+          } catch (roleErr) {
+            console.error("Error fetching role during login:", roleErr);
+          }
+        }
         setCurrentRole(r);
 
         if (typeof window !== "undefined") {
@@ -981,7 +1048,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const updated = blockedDates.includes(date)
       ? blockedDates.filter((d) => d !== date)
       : [...blockedDates, date];
-    
+
     if (db) {
       try {
         await setDoc(doc(db, "settings", "blocked_dates"), { dates: updated });
