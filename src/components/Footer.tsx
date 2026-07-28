@@ -93,7 +93,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link href="/faq" className="text-sm text-[#F7F1FB]/70 hover:text-white transition-colors">
-                  Delivery & FAQs
+                  Cotact Us
                 </Link>
               </li>
             </ul>

@@ -97,15 +97,9 @@ export default function ProfilePage() {
 
   if (!currentUser) {
     return (
-<<<<<<< HEAD
-      <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 text-center space-y-4 font-body">
-        <UserIcon className="w-12 h-12 text-[#9D5CDB] mx-auto animate-pulse" />
-        <h2 className="font-display text-xl font-semibold text-[#2F0538]">Loading your profile...</h2>
-=======
       <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 text-center space-y-4">
         <UserIcon className="w-12 h-12 text-[#C23CDD] mx-auto animate-pulse" />
         <h2 className="text-xl font-bold text-slate-800">Loading your profile...</h2>
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
       </div>
     );
   }
@@ -232,16 +226,6 @@ export default function ProfilePage() {
       case "Pending":
         return "bg-slate-100 text-slate-700 border-slate-200";
       case "Confirmed":
-<<<<<<< HEAD
-        return "bg-[#F7F1FB] text-[#2F0538] border-[#9D5CDB]/15";
-      case "Baking/Decorating":
-        return "bg-[#9D5CDB]/10 text-[#4A1054] border-[#9D5CDB]/20";
-      case "Ready for Dispatch":
-        return "bg-[#9D5CDB]/20 text-[#2F0538] border-[#9D5CDB]/30";
-      case "Delivered":
-      case "Completed":
-        return "bg-[#2F0538] text-white border-[#2F0538]";
-=======
         return "bg-[#FBF5FC] text-[#5A066B] border-[#F7EBF9]";
       case "Baking/Decorating":
         return "bg-[#F7EBF9] text-[#4B0259] border-[#EFD7F4]";
@@ -250,7 +234,6 @@ export default function ProfilePage() {
       case "Delivered":
       case "Completed":
         return "bg-[#1D0123] text-white border-[#1D0123]";
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
       case "Cancelled":
         return "bg-slate-50 text-slate-500 border-slate-200";
       default:
@@ -259,30 +242,6 @@ export default function ProfilePage() {
   };
 
   return (
-<<<<<<< HEAD
-    <div className="bg-gradient-to-b from-[#F7F1FB]/40 via-white to-white min-h-screen font-body">
-      <style jsx global>{`
-        @import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap");
-        .font-display {
-          font-family: "Fraunces", serif;
-          font-optical-sizing: auto;
-        }
-        .font-body {
-          font-family: "Plus Jakarta Sans", sans-serif;
-        }
-        .font-mono {
-          font-family: "IBM Plex Mono", monospace;
-        }
-      `}</style>
-
-      <Header />
-
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#2F0538] via-[#1E0124] to-[#4A1054] text-white pb-24 pt-16 sm:pt-20">
-        <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-[#9D5CDB] filter blur-3xl"></div>
-          <div className="absolute -bottom-32 -right-20 w-96 h-96 rounded-full bg-[#9D5CDB] filter blur-3xl"></div>
-=======
     <div className="bg-gradient-to-b from-[#FBF5FC]/40 via-white to-white min-h-screen">
       <Header />
 
@@ -291,7 +250,6 @@ export default function ProfilePage() {
         <div className="absolute inset-0 opacity-20 pointer-events-none">
           <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-[#9E05BD] filter blur-3xl"></div>
           <div className="absolute -bottom-32 -right-20 w-96 h-96 rounded-full bg-[#9E05BD] filter blur-3xl"></div>
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
         </div>
 
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative z-10">
@@ -307,11 +265,7 @@ export default function ProfilePage() {
                 {photoPreview ? (
                   <img src={photoPreview} alt={displayName} className="w-full h-full object-cover" />
                 ) : (
-<<<<<<< HEAD
-                  <UserIcon className="w-10 h-10 sm:w-12 sm:h-12 text-[#9D5CDB]" />
-=======
                   <UserIcon className="w-10 h-10 sm:w-12 sm:h-12 text-[#E389F5]" />
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                 )}
 
                 {isEditing && (
@@ -338,11 +292,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={handleRemovePhoto}
                   title="Remove photo"
-<<<<<<< HEAD
-                  className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-[#2F0538] hover:bg-[#4A1054] text-white flex items-center justify-center shadow-md border-2 border-white transition"
-=======
                   className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-[#1D0123] hover:bg-[#4B0259] text-white flex items-center justify-center shadow-md border-2 border-white transition"
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -350,28 +300,16 @@ export default function ProfilePage() {
             </div>
 
             <div className="text-center sm:text-left">
-<<<<<<< HEAD
-              <div className="inline-flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-full px-3 py-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-[#F7F1FB] mb-2">
-                <span>Cake Bae Member</span>
-              </div>
-              <h1 className="font-display text-2xl sm:text-4xl font-semibold tracking-tight">{displayName}</h1>
-              <p className="text-[#F7F1FB]/85 text-sm mt-1.5 flex items-center justify-center sm:justify-start gap-1.5">
-=======
               <div className="inline-flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#E389F5] mb-2">
                 <span>Cake Bae Member</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black">{displayName}</h1>
               <p className="text-[#EFD7F4]/80 text-sm mt-1.5 flex items-center justify-center sm:justify-start gap-1.5">
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                 <Mail className="w-3.5 h-3.5" />
                 {displayEmail}
               </p>
               {isEditing && (
-<<<<<<< HEAD
-                <p className="text-[#F7F1FB]/70 text-[11px] mt-2">
-=======
                 <p className="text-[#EFD7F4]/60 text-[11px] mt-2">
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                   Tap the photo to upload, or use the trash icon to remove it.
                 </p>
               )}
@@ -384,28 +322,16 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Account Details */}
           <div className="lg:col-span-2 space-y-6">
-<<<<<<< HEAD
-            <div className="bg-white border border-[#9D5CDB]/15 rounded-3xl p-6 sm:p-8 shadow-lg shadow-[#2F0538]/5">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="font-display text-lg font-semibold text-[#2F0538]">Account Details</h2>
-                  <p className="text-xs text-[#241129]/50 mt-0.5">Keep your info up to date for smoother deliveries.</p>
-=======
             <div className="bg-white border border-[#F7EBF9] rounded-3xl p-6 sm:p-8 shadow-lg shadow-[#1D0123]/5">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-lg font-black text-[#1D0123]">Account Details</h2>
                   <p className="text-xs text-slate-400 mt-0.5">Keep your info up to date for smoother deliveries.</p>
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                 </div>
                 {!isEditing ? (
                   <button
                     onClick={() => setIsEditing(true)}
-<<<<<<< HEAD
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#9D5CDB] hover:text-white bg-[#F7F1FB] hover:bg-[#9D5CDB] px-3.5 py-2 rounded-xl transition shrink-0"
-=======
                     className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5A066B] hover:text-white bg-[#FBF5FC] hover:bg-[#9E05BD] px-3.5 py-2 rounded-xl transition shrink-0"
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     <span>Edit</span>
@@ -415,11 +341,7 @@ export default function ProfilePage() {
                     <button
                       onClick={handleSave}
                       disabled={isSaving}
-<<<<<<< HEAD
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#9D5CDB] hover:bg-[#4A1054] disabled:opacity-60 disabled:cursor-not-allowed px-3.5 py-2 rounded-xl shadow-sm transition"
-=======
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#9E05BD] hover:bg-[#7D0495] disabled:opacity-60 disabled:cursor-not-allowed px-3.5 py-2 rounded-xl shadow-sm transition"
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                     >
                       {isSaving ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -431,11 +353,7 @@ export default function ProfilePage() {
                     <button
                       onClick={handleCancel}
                       disabled={isSaving}
-<<<<<<< HEAD
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#241129]/60 hover:text-[#241129] px-3 py-2 rounded-xl hover:bg-[#F7F1FB] transition disabled:opacity-60"
-=======
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 px-3 py-2 rounded-xl hover:bg-slate-50 transition disabled:opacity-60"
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                     >
                       <X className="w-3.5 h-3.5" />
                       <span>Cancel</span>
@@ -445,22 +363,14 @@ export default function ProfilePage() {
               </div>
 
               {savedMessage && (
-<<<<<<< HEAD
-                <div className="mb-6 flex items-center gap-2 text-xs font-semibold text-[#2F0538] bg-[#F7F1FB] border border-[#9D5CDB]/15 rounded-xl px-3.5 py-2.5">
-=======
                 <div className="mb-6 flex items-center gap-2 text-xs font-semibold text-[#1D0123] bg-[#FBF5FC] border border-[#F7EBF9] rounded-xl px-3.5 py-2.5">
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                   <Check className="w-3.5 h-3.5" />
                   <span>Profile updated.</span>
                 </div>
               )}
 
               {errorMessage && (
-<<<<<<< HEAD
-                <div className="mb-6 flex items-center gap-2 text-xs font-semibold text-[#2F0538] bg-[#F7F1FB] border border-[#9D5CDB]/30 rounded-xl px-3.5 py-2.5">
-=======
                 <div className="mb-6 flex items-center gap-2 text-xs font-semibold text-[#1D0123] bg-[#FBF5FC] border border-[#EFD7F4] rounded-xl px-3.5 py-2.5">
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                   <X className="w-3.5 h-3.5" />
                   <span>{errorMessage}</span>
                 </div>
@@ -469,127 +379,73 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {/* Name */}
                 <div className="flex items-start gap-3 sm:col-span-2">
-<<<<<<< HEAD
-                  <div className="w-10 h-10 rounded-xl bg-[#F7F1FB] flex items-center justify-center text-[#9D5CDB] shrink-0">
-                    <UserIcon className="w-4.5 h-4.5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label className="text-[10px] font-bold text-[#241129]/50 uppercase tracking-wider">Full Name</label>
-=======
                   <div className="w-10 h-10 rounded-xl bg-[#FBF5FC] flex items-center justify-center text-[#7A0891] shrink-0">
                     <UserIcon className="w-4.5 h-4.5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                     {isEditing ? (
                       <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-<<<<<<< HEAD
-                        className="w-full mt-1 bg-white border border-[#9D5CDB]/30 rounded-xl py-2.5 px-3.5 text-sm text-[#241129] focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/20 focus:border-[#9D5CDB] transition"
-                      />
-                    ) : (
-                      <p className="text-sm font-semibold text-[#241129] mt-1">{displayName}</p>
-=======
                         className="w-full mt-1 bg-white border border-[#EFD7F4] rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#9E05BD]/20 focus:border-[#9E05BD] transition"
                       />
                     ) : (
                       <p className="text-sm font-semibold text-slate-800 mt-1">{displayName}</p>
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                     )}
                   </div>
                 </div>
 
                 {/* Email (read-only) */}
                 <div className="flex items-start gap-3">
-<<<<<<< HEAD
-                  <div className="w-10 h-10 rounded-xl bg-[#F7F1FB] flex items-center justify-center text-[#9D5CDB] shrink-0">
-                    <Mail className="w-4.5 h-4.5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label className="text-[10px] font-bold text-[#241129]/50 uppercase tracking-wider">Email Address</label>
-                    <p className="text-sm font-semibold text-[#241129] mt-1 truncate">{displayEmail}</p>
-=======
                   <div className="w-10 h-10 rounded-xl bg-[#FBF5FC] flex items-center justify-center text-[#7A0891] shrink-0">
                     <Mail className="w-4.5 h-4.5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
                     <p className="text-sm font-semibold text-slate-800 mt-1 truncate">{displayEmail}</p>
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                   </div>
                 </div>
 
                 {/* Phone */}
                 <div className="flex items-start gap-3">
-<<<<<<< HEAD
-                  <div className="w-10 h-10 rounded-xl bg-[#F7F1FB] flex items-center justify-center text-[#9D5CDB] shrink-0">
-                    <Phone className="w-4.5 h-4.5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label className="text-[10px] font-bold text-[#241129]/50 uppercase tracking-wider">Phone Number</label>
-=======
                   <div className="w-10 h-10 rounded-xl bg-[#FBF5FC] flex items-center justify-center text-[#7A0891] shrink-0">
                     <Phone className="w-4.5 h-4.5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phone Number</label>
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                     {isEditing ? (
                       <input
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="e.g. 077 123 4567"
-<<<<<<< HEAD
-                        className="w-full mt-1 bg-white border border-[#9D5CDB]/30 rounded-xl py-2.5 px-3.5 text-sm text-[#241129] focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/20 focus:border-[#9D5CDB] transition"
-                      />
-                    ) : (
-                      <p className="text-sm font-semibold text-[#241129] mt-1">{phone || "Not added yet"}</p>
-=======
                         className="w-full mt-1 bg-white border border-[#EFD7F4] rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#9E05BD]/20 focus:border-[#9E05BD] transition"
                       />
                     ) : (
                       <p className="text-sm font-semibold text-slate-800 mt-1">{phone || "Not added yet"}</p>
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                     )}
                   </div>
                 </div>
 
                 {/* Delivery Address */}
                 <div className="flex items-start gap-3 sm:col-span-2">
-<<<<<<< HEAD
-                  <div className="w-10 h-10 rounded-xl bg-[#F7F1FB] flex items-center justify-center text-[#9D5CDB] shrink-0">
-                    <MapPin className="w-4.5 h-4.5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label className="text-[10px] font-bold text-[#241129]/50 uppercase tracking-wider">Delivery Address</label>
-=======
                   <div className="w-10 h-10 rounded-xl bg-[#FBF5FC] flex items-center justify-center text-[#7A0891] shrink-0">
                     <MapPin className="w-4.5 h-4.5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Delivery Address</label>
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                     {isEditing ? (
                       <textarea
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
                         placeholder="Street, city, and any delivery notes"
                         rows={2}
-<<<<<<< HEAD
-                        className="w-full mt-1 bg-white border border-[#9D5CDB]/30 rounded-xl py-2.5 px-3.5 text-sm text-[#241129] focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/20 focus:border-[#9D5CDB] transition resize-none"
-                      />
-                    ) : (
-                      <p className="text-sm font-semibold text-[#241129] mt-1">{address || "Not added yet"}</p>
-=======
                         className="w-full mt-1 bg-white border border-[#EFD7F4] rounded-xl py-2.5 px-3.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#9E05BD]/20 focus:border-[#9E05BD] transition resize-none"
                       />
                     ) : (
                       <p className="text-sm font-semibold text-slate-800 mt-1">{address || "Not added yet"}</p>
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                     )}
                   </div>
                 </div>
@@ -599,21 +455,12 @@ export default function ProfilePage() {
 
           {/* Sidebar: Quick Actions */}
           <div className="space-y-6">
-<<<<<<< HEAD
-            <div className="bg-white border border-[#9D5CDB]/15 rounded-3xl p-6 shadow-lg shadow-[#2F0538]/5 space-y-3">
-              <h3 className="font-mono text-sm font-bold uppercase tracking-wider text-[#241129] mb-2">Quick Actions</h3>
-
-              <Link
-                href="/orders"
-                className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-[#F7F1FB]/60 hover:bg-[#F7F1FB] text-[#9D5CDB] text-sm font-semibold transition group"
-=======
             <div className="bg-white border border-[#F7EBF9] rounded-3xl p-6 shadow-lg shadow-[#1D0123]/5 space-y-3">
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700 mb-2">Quick Actions</h3>
 
               <Link
                 href="/orders"
                 className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-[#FBF5FC]/60 hover:bg-[#FBF5FC] text-[#5A066B] text-sm font-semibold transition group"
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
               >
                 <span className="flex items-center gap-2.5">
                   <ShoppingBag className="w-4 h-4" />
@@ -624,21 +471,13 @@ export default function ProfilePage() {
 
               <Link
                 href="/cart"
-<<<<<<< HEAD
-                className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-[#F7F1FB]/30 hover:bg-[#F7F1FB] text-[#241129] text-sm font-semibold transition group"
-=======
                 className="flex items-center justify-between px-4 py-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-sm font-semibold transition group"
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
               >
                 <span className="flex items-center gap-2.5">
                   <ShoppingBag className="w-4 h-4" />
                   Current Cart
                   {cart.length > 0 && (
-<<<<<<< HEAD
-                    <span className="ml-1 text-[10px] bg-[#9D5CDB] text-white font-bold px-1.5 py-0.5 rounded-full">
-=======
                     <span className="ml-1 text-[10px] bg-[#9E05BD] text-white font-bold px-1.5 py-0.5 rounded-full">
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                       {cart.length}
                     </span>
                   )}
@@ -648,11 +487,7 @@ export default function ProfilePage() {
 
               <button
                 onClick={handleLogout}
-<<<<<<< HEAD
-                className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl border border-dashed border-[#9D5CDB]/30 bg-[#F7F1FB]/30 hover:bg-[#F7F1FB] text-[#9D5CDB] text-sm font-semibold transition mt-2"
-=======
                 className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl border border-dashed border-[#EFD7F4] bg-[#FBF5FC]/30 hover:bg-[#FBF5FC] text-[#5A066B] text-sm font-semibold transition mt-2"
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
               >
                 <LogOut className="w-4 h-4" />
                 <span>Log Out</span>
@@ -660,19 +495,11 @@ export default function ProfilePage() {
             </div>
 
             {/* Little summary card */}
-<<<<<<< HEAD
-            <div className="bg-gradient-to-br from-[#2F0538] to-[#4A1054] text-white rounded-3xl p-6 shadow-lg shadow-[#2F0538]/10">
-              <p className="text-sm font-bold leading-relaxed">
-                Thanks for being part of the Cake Bae family, {currentUser.name?.split(" ")[0] || "friend"}!
-              </p>
-              <p className="text-xs text-[#F7F1FB]/70 mt-2 leading-relaxed">
-=======
             <div className="bg-gradient-to-br from-[#1D0123] to-[#4B0259] text-white rounded-3xl p-6 shadow-lg shadow-[#1D0123]/10">
               <p className="text-sm font-bold leading-relaxed">
                 Thanks for being part of the Cake Bae family, {currentUser.name?.split(" ")[0] || "friend"}!
               </p>
               <p className="text-xs text-[#EFD7F4]/70 mt-2 leading-relaxed">
->>>>>>> 361d8431e4c3dd781c757de7630e56f73e3f6744
                 Every order helps a small bakery do what it loves. Sweet things ahead.
               </p>
             </div>

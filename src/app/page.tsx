@@ -237,22 +237,34 @@ export default function StoreFrontHome() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
-          {categoriesList.map((cat) => (
-            <Link
-              key={cat.name}
-              href={`/shop?category=${encodeURIComponent(cat.name)}`}
-              className="group flex flex-col items-center text-center p-8 bg-white border border-[#9D5CDB]/15 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1.5"
-            >
-              <span className="flex items-center justify-center w-16 h-16 rounded-full bg-[#F7F1FB] ring-1 ring-[#9D5CDB]/30 text-3xl mb-4 group-hover:ring-[#9D5CDB] transition-all">
-                {cat.icon}
-              </span>
-              <h3 className="font-display text-lg font-semibold text-[#2F0538] mb-1">{cat.name}</h3>
-              <p className="text-xs text-[#241129]/60 mb-4 leading-relaxed">{cat.description}</p>
-              <span className="font-mono text-[11px] font-semibold px-3 py-1 bg-[#F7F1FB] border border-[#9D5CDB]/15 rounded-full text-[#9D5CDB]">
-                {cat.count}
-              </span>
-            </Link>
-          ))}
+          {categoriesList.map((cat) => {
+            const catImage =
+              products.find((p) => p.category === cat.name)?.image || galleryFallback;
+            return (
+              <Link
+                key={cat.name}
+                href={`/shop?category=${encodeURIComponent(cat.name)}`}
+                className="group flex flex-col items-center text-center p-8 bg-white border border-[#9D5CDB]/15 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1.5"
+              >
+                <span className="relative flex items-center justify-center w-20 h-20 rounded-full overflow-hidden ring-1 ring-[#9D5CDB]/30 mb-4 group-hover:ring-[#9D5CDB] transition-all">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={catImage}
+                    alt={cat.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition duration-500 ease-out"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = galleryFallback;
+                    }}
+                  />
+                </span>
+                <h3 className="font-display text-lg font-semibold text-[#2F0538] mb-1">{cat.name}</h3>
+                <p className="text-xs text-[#241129]/60 mb-4 leading-relaxed">{cat.description}</p>
+                <span className="font-mono text-[11px] font-semibold px-3 py-1 bg-[#F7F1FB] border border-[#9D5CDB]/15 rounded-full text-[#9D5CDB]">
+                  {cat.count}
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -307,7 +319,7 @@ export default function StoreFrontHome() {
                     {product.name}
                   </h3>
                   <div className="flex items-center justify-between pt-2">
-                    <span className="font-mono text-base font-semibold text-[#2F0538]">
+                    <span className="font-display text-2xl font-semibold text-[#9D5CDB]">
                       Rs. {product.price.toLocaleString()}
                     </span>
                     <Link
