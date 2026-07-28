@@ -307,6 +307,18 @@ export default function OrdersPage() {
           letter-spacing: -0.01em;
         }
         body { font-family: "Inter", ui-sans-serif, system-ui, sans-serif; }
+
+        /* Slim, unobtrusive horizontal scrollbar for the status filter row */
+        .status-filter-row::-webkit-scrollbar {
+          height: 4px;
+        }
+        .status-filter-row::-webkit-scrollbar-thumb {
+          background-color: rgba(157, 92, 219, 0.25);
+          border-radius: 9999px;
+        }
+        .status-filter-row::-webkit-scrollbar-track {
+          background: transparent;
+        }
       `}</style>
 
       <Header />
@@ -341,14 +353,14 @@ export default function OrdersPage() {
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#241129]/12 text-sm text-[#241129] placeholder:text-[#241129]/35 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB] focus:border-transparent transition"
               />
             </div>
-            <div className="flex flex-wrap gap-1.5 bg-[#F7F1FB] p-1 rounded-xl border border-[#9D5CDB]/12 self-start">
+            <div className="status-filter-row flex flex-nowrap items-center gap-1 bg-[#F7F1FB] p-1 rounded-xl border border-[#9D5CDB]/12 self-start overflow-x-auto max-w-full">
               {STATUS_FILTERS.map((status) => {
                 const active = statusFilter === status;
                 return (
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
-                    className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold border transition-all duration-200 shrink-0 group ${active ? 'border-[#9D5CDB] bg-[#9D5CDB] text-white' : 'border-[#9D5CDB]/20 bg-[#F7F1FB] text-[#9D5CDB]'} hover:bg-[#2F0538] hover:border-[#9D5CDB] hover:text-white`}
+                    className={`inline-flex items-center justify-center px-2.5 py-1.5 rounded-lg text-[11px] font-bold border whitespace-nowrap shrink-0 transition-all duration-200 ${active ? 'border-[#9D5CDB] bg-[#9D5CDB] text-white' : 'border-transparent bg-transparent text-[#9D5CDB]'} hover:bg-[#2F0538] hover:border-[#2F0538] hover:text-white`}
                   >
                     {status}
                   </button>

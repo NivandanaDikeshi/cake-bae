@@ -86,6 +86,18 @@ export default function GalleryPage() {
         .font-mono {
           font-family: "IBM Plex Mono", monospace;
         }
+
+        /* Slim, unobtrusive horizontal scrollbar for the category filter row */
+        .category-filter-row::-webkit-scrollbar {
+          height: 4px;
+        }
+        .category-filter-row::-webkit-scrollbar-thumb {
+          background-color: rgba(157, 92, 219, 0.25);
+          border-radius: 9999px;
+        }
+        .category-filter-row::-webkit-scrollbar-track {
+          background: transparent;
+        }
       `}</style>
 
       <Header />
@@ -115,17 +127,17 @@ export default function GalleryPage() {
       {/* Category Filter + Shuffle */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mt-8 relative z-20">
         <div className="bg-white rounded-2xl border border-[#9D5CDB]/15 shadow-lg shadow-[#2F0538]/5 p-4 sm:p-5">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center justify-center gap-2.5">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="category-filter-row flex flex-nowrap items-center gap-1 bg-[#F7F1FB] p-1 rounded-xl border border-[#9D5CDB]/12 overflow-x-auto max-w-full">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all duration-200 ${
+                  className={`inline-flex items-center justify-center px-2.5 py-1.5 rounded-lg text-[11px] font-bold border whitespace-nowrap shrink-0 transition-all duration-200 ${
                     activeCategory === cat
-                      ? "bg-[#9D5CDB] border-[#9D5CDB] text-white shadow-md shadow-[#9D5CDB]/30"
-                      : "bg-white border-[#9D5CDB]/20 text-[#241129]/70 hover:border-[#9D5CDB]/50 hover:text-[#9D5CDB]"
-                  }`}
+                      ? "border-[#9D5CDB] bg-[#9D5CDB] text-white"
+                      : "border-transparent bg-transparent text-[#9D5CDB]"
+                  } hover:bg-[#2F0538] hover:border-[#2F0538] hover:text-white`}
                 >
                   {cat}
                 </button>
@@ -134,7 +146,7 @@ export default function GalleryPage() {
 
             <button
               onClick={handleShuffle}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold border border-[#9D5CDB]/20 text-[#9D5CDB] bg-[#F7F1FB] hover:bg-[#9D5CDB] hover:border-[#9D5CDB] hover:text-white transition-all duration-200 shrink-0 group"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold border border-[#9D5CDB]/20 text-[#9D5CDB] bg-[#F7F1FB] hover:bg-[#2F0538] hover:border-[#9D5CDB] hover:text-white transition-all duration-200 shrink-0 group"
             >
               <Shuffle className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
               <span>Shuffle</span>

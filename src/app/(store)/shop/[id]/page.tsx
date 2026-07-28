@@ -1,302 +1,309 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, Star, Cake, SlidersHorizontal, RefreshCw, X, ChevronDown, PackageSearch, ChevronRight } from "lucide-react";
-import { useAppState } from "@/context/StateContext";
+import { ShieldAlert, ArrowLeft, Plus, Minus, ShoppingBag, Clock, CheckCircle2, Star } from "lucide-react";
+import { useAppState, Product } from "@/context/StateContext";
 
-export default function ShopCatalog() {
-  const { products, categories } = useAppState();
-  const searchParams = useSearchParams();
+export default function ProductDetailsPage() {
+  const { id } = useParams() as { id: string };
+  const { products, addToCart } = useAppState();
   const router = useRouter();
 
-  // State
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [sortBy, setSortBy] = useState("default");
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedFlavour, setSelectedFlavour] = useState("");
+  const [customMessage, setCustomMessage] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [addedMessage, setAddedMessage] = useState(false);
 
-  // Read URL query params on load
   useEffect(() => {
-    const catParam = searchParams.get("category");
-    if (catParam) {
-      setSelectedCategory(catParam);
+    if (!id || products.length === 0) return;
+
+    const found = products.find((p) => p.id === id);
+
+    if (found) {
+      setProduct(found);
+
+      if (found.sizes.length > 0) {
+        setSelectedSize(found.sizes[0]);
+      }
+
+      if (found.flavours.length > 0) {
+        setSelectedFlavour(found.flavours[0]);
+      }
     }
-  }, [searchParams]);
+  }, [id, products]);
 
-  // Item count per category, for the sidebar
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const product of products) {
-      counts[product.category] = (counts[product.category] || 0) + 1;
-    }
-    return counts;
-  }, [products]);
+  // Automatically recalculates whenever the product, selected size, or
+  // selected flavour changes. Falls back to the base price / no add-on
+  // if sizePrices / flavourPrices aren't set for the product in Firestore.
+  const unitPrice = useMemo(() => {
+    if (!product) return 0;
 
-  // Filters logic
-  const filteredProducts = useMemo(() => {
-    return products
-      .filter((product) => {
-        const term = searchTerm.toLowerCase();
-        const matchesSearch =
-          product.name.toLowerCase().includes(term) ||
-          product.description.toLowerCase().includes(term);
-        const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
-        return matchesSearch && matchesCategory;
-      })
-      .sort((a, b) => {
-        if (sortBy === "price-low") return a.price - b.price;
-        if (sortBy === "price-high") return b.price - a.price;
-        if (sortBy === "rating") return b.rating - a.rating;
-        return 0; // default order
-      });
-  }, [products, searchTerm, selectedCategory, sortBy]);
+    const sizePrices = product.sizePrices;
+    const flavourPrices = product.flavourPrices;
 
-  const hasActiveFilters = searchTerm !== "" || selectedCategory !== "All" || sortBy !== "default";
+    const basePrice =
+      sizePrices && selectedSize && sizePrices[selectedSize] !== undefined
+        ? sizePrices[selectedSize]
+        : product.price;
 
-  const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category);
-    setMobileFiltersOpen(false);
-    const params = new URLSearchParams();
-    if (category !== "All") {
-      params.set("category", category);
-    }
-    router.push(`/shop?${params.toString()}`);
+    const flavourAddOn =
+      flavourPrices && selectedFlavour && flavourPrices[selectedFlavour] !== undefined
+        ? flavourPrices[selectedFlavour]
+        : 0;
+
+    return basePrice + flavourAddOn;
+  }, [product, selectedSize, selectedFlavour]);
+
+  const totalPrice = unitPrice * quantity;
+
+  if (!product) {
+    return (
+      <div className="light mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 text-center space-y-4 bg-white">
+        <style jsx global>{`
+          @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap");
+          .font-display {
+            font-family: "Fraunces", ui-serif, Georgia, serif;
+            letter-spacing: -0.01em;
+          }
+          body { font-family: "Inter", ui-sans-serif, system-ui, sans-serif; }
+        `}</style>
+        <ShieldAlert className="w-12 h-12 text-[#9D5CDB] mx-auto animate-pulse" />
+        <h2 className="font-display text-xl font-semibold text-[#2F0538]">Cake not found</h2>
+        <p className="text-sm text-[#241129]/60">
+          The cake you are looking for might have been removed or doesn't exist.
+        </p>
+        <Link
+          href="/shop"
+          className="inline-flex items-center gap-1.5 font-bold text-[#9D5CDB] hover:underline text-sm"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Catalog</span>
+        </Link>
+      </div>
+    );
+  }
+
+  const handleAddToCart = () => {
+    addToCart({
+      product,
+      quantity,
+      selectedSize,
+      selectedFlavour,
+      customMessage,
+      unitPrice,
+    });
+
+    setAddedMessage(true);
+    setTimeout(() => {
+      setAddedMessage(false);
+      router.push("/cart");
+    }, 1200);
   };
 
-  const handleResetFilters = () => {
-    setSearchTerm("");
-    setSelectedCategory("All");
-    setSortBy("default");
-    setMobileFiltersOpen(false);
-    router.push("/shop");
-  };
-
-  const sortLabels: Record<string, string> = {
-    default: "Default Popularity",
-    "price-low": "Price: Low to High",
-    "price-high": "Price: High to Low",
-    rating: "Rating: Highest First",
-  };
+  const handleQuantityIncrease = () => setQuantity((prev) => prev + 1);
+  const handleQuantityDecrease = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
   return (
-    <div className="bg-[#F7F1FB] min-h-screen font-body">
+    <div className="light mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 bg-white">
       <style jsx global>{`
-        @import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap");
+        @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap");
         .font-display {
-          font-family: "Fraunces", serif;
-          font-optical-sizing: auto;
+          font-family: "Fraunces", ui-serif, Georgia, serif;
+          letter-spacing: -0.01em;
         }
-        .font-body {
-          font-family: "Plus Jakarta Sans", sans-serif;
-        }
-        .font-mono {
-          font-family: "IBM Plex Mono", monospace;
-        }
+        body { font-family: "Inter", ui-sans-serif, system-ui, sans-serif; }
       `}</style>
 
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      {/* Back Button */}
+      <Link
+        href="/shop"
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#241129]/60 hover:text-[#9D5CDB] mb-8 transition"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span>Back to online shop</span>
+      </Link>
 
-        {/* Header */}
-        <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
-          <div>
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white text-[#9D5CDB] font-bold text-xs tracking-[0.18em] uppercase border border-[#9D5CDB]/20 shadow-sm">
-              <span>Full Collection</span>
-            </div>
-            <h1 className="font-display text-3xl sm:text-4xl font-semibold text-[#2F0538] tracking-tight mt-3">
-              Shop Our Cakes &amp; Desserts
-            </h1>
-          </div>
-
-          {/* Search + mobile filter toggle */}
-          <div className="flex items-center gap-3 w-full lg:w-auto">
-            <div className="relative flex-1 lg:w-80">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9D5CDB]/40" />
-              <input
-                type="text"
-                placeholder="Search cakes, flavours, brownies..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white border border-[#9D5CDB]/20 rounded-xl py-3 pl-10 pr-9 text-sm text-[#2F0538] placeholder-[#241129]/40 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/30 focus:border-[#9D5CDB] transition"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  aria-label="Clear search"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9D5CDB]/40 hover:text-[#9D5CDB] transition"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            <button
-              onClick={() => setMobileFiltersOpen((v) => !v)}
-              className="lg:hidden inline-flex items-center justify-center gap-2 px-4 py-3 bg-white border border-[#9D5CDB]/20 rounded-xl text-sm font-semibold text-[#2F0538] shadow-sm shrink-0"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              <span>Filters</span>
-            </button>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 bg-white">
+        {/* Left: Product Image */}
+        <div className="lg:col-span-6 bg-white">
+          <div className="relative aspect-square rounded-3xl overflow-hidden bg-[#F7F1FB] border border-[#9D5CDB]/15 shadow-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&auto=format&fit=crop&q=80";
+              }}
+            />
+            <Star className="w-2.5 h-2.5 fill-[#F7F1FB]" />
+            <span className="absolute top-4 left-4 text-xs font-bold text-[#9D5CDB] tracking-wider uppercase bg-[#F7F1FB] px-2.5 py-1 rounded-md border border-[#9D5CDB]/15 inline-block">  
+              {product.rating} ★ Rating
+            </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-8">
-          {/* Sidebar Filters */}
-          <div className={`space-y-6 lg:sticky lg:top-28 self-start ${mobileFiltersOpen ? "block" : "hidden"} lg:block`}>
-            {/* Categories Filter */}
-            <div className="bg-white border border-[#9D5CDB]/15 rounded-2xl p-6 shadow-sm">
-              <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-[#2F0538] mb-4 flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-[#9D5CDB]" />
-                <span>Categories</span>
-              </h3>
-              <div className="flex flex-col gap-1.5">
-                <button
-                  onClick={() => handleCategorySelect("All")}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition ${
-                    selectedCategory === "All"
-                      ? "bg-[#F7F1FB] text-[#9D5CDB] font-semibold"
-                      : "text-[#241129]/60 hover:bg-[#F7F1FB]/60"
-                  }`}
-                >
-                  <span>All Cakes &amp; Desserts</span>
-                  <span className="font-mono text-xs font-semibold text-[#9D5CDB]/60">{products.length}</span>
-                </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => handleCategorySelect(cat)}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition ${
-                      selectedCategory === cat
-                        ? "bg-[#F7F1FB] text-[#9D5CDB] font-semibold"
-                        : "text-[#241129]/60 hover:bg-[#F7F1FB]/60"
-                    }`}
-                  >
-                    <span>{cat}</span>
-                    <span className="font-mono text-xs font-semibold text-[#9D5CDB]/60">{categoryCounts[cat] || 0}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Sort By Filter */}
-            <div className="bg-white border border-[#9D5CDB]/15 rounded-2xl p-6 shadow-sm">
-              <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-[#2F0538] mb-4">Sort By</h3>
-              <div className="relative">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full appearance-none bg-white border border-[#9D5CDB]/20 rounded-xl p-3 pr-9 text-sm text-[#2F0538] focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/30 focus:border-[#9D5CDB]"
-                >
-                  {Object.entries(sortLabels).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9D5CDB]/40 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Reset Filters button */}
-            {hasActiveFilters && (
-              <button
-                onClick={handleResetFilters}
-                className="w-full inline-flex items-center justify-center gap-2 py-3 border border-dashed border-[#9D5CDB]/30 text-[#9D5CDB] font-semibold text-sm rounded-xl bg-[#F7F1FB] hover:bg-[#9D5CDB]/10 transition"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Clear All Filters</span>
-              </button>
-            )}
+        {/* Right: Product Customization Form */}
+        <div className="lg:col-span-6 space-y-6 bg-white">
+          <div className="space-y-2">
+            <span className="text-xs font-bold text-[#9D5CDB] tracking-wider uppercase bg-[#F7F1FB] px-2.5 py-1 rounded-md border border-[#9D5CDB]/15 inline-block">
+              {product.category}
+            </span>
+            <h1 className="font-display text-3xl font-semibold text-[#2F0538]">{product.name}</h1>
+            <p className="text-base text-[#241129]/60 leading-relaxed">{product.description}</p>
           </div>
 
-          {/* Product Grid Area */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Results Summary */}
-            <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#241129]/60 font-medium">
-              <span>
-                Showing <span className="text-[#2F0538] font-semibold">{filteredProducts.length}</span> item
-                {filteredProducts.length === 1 ? "" : "s"}
+          {/* Pricing & Prep Time — updates automatically as size/flavour change */}
+          <div className="flex items-center gap-6 p-4 bg-[#F7F1FB]/50 rounded-2xl border border-[#9D5CDB]/15">
+            <div>
+              <span className="text-xs text-[#241129]/60 font-medium block">Price</span>
+              <span
+                key={unitPrice}
+                className="text-2xl font-bold text-[#2F0538] transition-all duration-200 animate-[fadeIn_0.2s_ease-in-out]"
+              >
+                Rs. {unitPrice.toLocaleString()}
               </span>
-              <div className="flex flex-wrap items-center gap-2">
-                {selectedCategory !== "All" && (
-                  <span className="inline-flex items-center gap-1.5 bg-[#F7F1FB] text-[#9D5CDB] font-semibold px-2.5 py-1 rounded-md">
-                    {selectedCategory}
-                    <button onClick={() => handleCategorySelect("All")} aria-label="Remove category filter">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                )}
-                {searchTerm && (
-                  <span className="inline-flex items-center gap-1.5 bg-[#F7F1FB] text-[#9D5CDB] font-semibold px-2.5 py-1 rounded-md">
-                    "{searchTerm}"
-                    <button onClick={() => setSearchTerm("")} aria-label="Clear search filter">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                )}
-              </div>
             </div>
+            <div className="h-8 w-px bg-[#9D5CDB]/20"></div>
+            <div>
+              <span className="text-xs text-[#241129]/60 font-medium block">Lead Time Required</span>
+              <span className="text-sm font-semibold text-[#2F0538] flex items-center gap-1.5 mt-0.5">
+                <Clock className="w-4 h-4 text-[#9D5CDB]" />
+                {product.leadTime}
+              </span>
+            </div>
+          </div>
 
-            {filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="group bg-white rounded-2xl border border-[#9D5CDB]/15 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full hover:-translate-y-1"
-                  >
-                    {/* Image */}
-                    <div className="relative aspect-square overflow-hidden bg-[#F7F1FB] border-b border-[#9D5CDB]/10">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition duration-500 ease-out"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80";
-                        }}
-                      />
-                      <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 bg-[#2F0538] text-[#F7F1FB] text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full shadow-sm">
-                        <Star className="w-2.5 h-2.5 fill-[#F7F1FB]" />
-                        {product.rating}
-                      </span>
-                    </div>
-
-                    {/* Details */}
-                    <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
-                      <div className="space-y-1">
-                        <h3 className="font-display text-base font-semibold text-[#2F0538] line-clamp-1">
-                          {product.name}
-                        </h3>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-2">
-                        <span className="font-display text-2xl font-semibold text-[#9D5CDB]">
-                          Rs. {product.price.toLocaleString()}
+          <div className="space-y-5 pt-4 border-t border-[#9D5CDB]/15">
+            {/* Size Selector */}
+            {product.sizes.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-[#2F0538]">Select Cake Size / Portions</label>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-4 py-2 text-xs font-bold rounded-xl border transition ${
+                        selectedSize === size
+                          ? "bg-[#9D5CDB] border-[#9D5CDB] text-white shadow-sm"
+                          : "bg-white border-[#9D5CDB]/15 text-[#241129] hover:bg-[#F7F1FB]/50"
+                      }`}
+                    >
+                      {size}
+                      {product.sizePrices && product.sizePrices[size] !== undefined && (
+                        <span className="ml-1.5 opacity-70 font-medium">
+                          Rs. {product.sizePrices[size].toLocaleString()}
                         </span>
-                        <Link
-                          href={`/shop/${product.id}`}
-                          className="px-3.5 py-1.5 bg-[#F7F1FB] hover:bg-[#2F0538] hover:text-white text-[#9D5CDB] text-xs font-bold rounded-lg transition-colors duration-300"
-                        >
-                          <span>Customize</span>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20 bg-white border border-[#9D5CDB]/15 rounded-2xl space-y-4">
-                <div className="w-16 h-16 rounded-full bg-[#F7F1FB] flex items-center justify-center mx-auto text-[#9D5CDB]/60">
-                  <PackageSearch className="w-8 h-8" />
+                      )}
+                    </button>
+                  ))}
                 </div>
-                <h3 className="font-display text-lg font-semibold text-[#2F0538]">No cakes found</h3>
-                <button
-                  onClick={handleResetFilters}
-                  className="px-5 py-2.5 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold text-sm rounded-xl transition"
-                >
-                  Reset Filters
-                </button>
               </div>
             )}
+
+            {/* Flavour Selector */}
+            {product.flavours.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-[#2F0538]">Select Cake Flavour</label>
+                <div className="flex flex-wrap gap-2">
+                  {product.flavours.map((flavour) => (
+                    <button
+                      key={flavour}
+                      onClick={() => setSelectedFlavour(flavour)}
+                      className={`px-4 py-2.5 text-xs font-bold rounded-xl border transition ${
+                        selectedFlavour === flavour
+                          ? "bg-[#2F0538] border-[#2F0538] text-white shadow-sm"
+                          : "bg-white border-[#9D5CDB]/15 text-[#241129] hover:bg-[#F7F1FB]/50"
+                      }`}
+                    >
+                      {flavour}
+                      {product.flavourPrices &&
+                        product.flavourPrices[flavour] !== undefined &&
+                        product.flavourPrices[flavour] > 0 && (
+                          <span className="ml-1.5 opacity-70 font-medium">
+                            +Rs. {product.flavourPrices[flavour].toLocaleString()}
+                          </span>
+                        )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Custom Message input */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-bold text-[#2F0538]">Writing on Cake (Optional)</label>
+                <span className="text-[10px] text-[#241129]/40 font-medium">Max 30 characters</span>
+              </div>
+              <input
+                type="text"
+                placeholder="e.g. Happy Birthday Savi!"
+                maxLength={30}
+                value={customMessage}
+                onChange={(e) => setCustomMessage(e.target.value)}
+                className="w-full bg-white border border-[#9D5CDB]/20 rounded-xl py-3 px-4 text-sm text-[#2F0538] placeholder-[#241129]/40 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/20 focus:border-[#9D5CDB] transition"
+              />
+            </div>
+
+            {/* Quantity and Actions */}
+            <div className="flex items-center gap-4 pt-4">
+              <div className="flex items-center border border-[#9D5CDB]/20 rounded-xl overflow-hidden bg-white">
+                <button
+                  onClick={handleQuantityDecrease}
+                  className="p-3 text-[#241129]/60 hover:bg-[#F7F1FB] transition"
+                  title="Decrease quantity"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="w-10 text-center text-sm font-bold text-[#2F0538]">{quantity}</span>
+                <button
+                  onClick={handleQuantityIncrease}
+                  className="p-3 text-[#241129]/60 hover:bg-[#F7F1FB] transition"
+                  title="Increase quantity"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+
+              <button
+                onClick={handleAddToCart}
+                disabled={addedMessage}
+                className={`flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-bold text-sm shadow-md transition transform ${
+                  addedMessage
+                    ? "bg-[#2F0538] text-white translate-y-0"
+                    : "bg-[#9D5CDB] hover:bg-[#4A1054] text-white hover:-translate-y-0.5 shadow-[#9D5CDB]/25"
+                }`}
+              >
+                {addedMessage ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Added to Cart!</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="w-4 h-4" />
+                    <span>Add to Order Cart</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Total Price Summary */}
+            <div className="flex items-center justify-between pt-2 text-sm">
+              <span className="text-[#241129]/60 font-medium">
+                Total for {quantity} {quantity > 1 ? "items" : "item"}
+              </span>
+              <span className="text-lg font-bold text-[#2F0538]">
+                Rs. {totalPrice.toLocaleString()}
+              </span>
+            </div>
           </div>
         </div>
       </div>
