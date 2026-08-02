@@ -9,6 +9,9 @@ import { useHasPermission } from "@/lib/permissions";
 const PERMISSION_ACTIONS = ["create", "read", "update", "delete", "export"];
 const PERMISSION_MODULES = ["dashboard", "products", "orders", "users", "calendar", "messages", "roles"] as const;
 
+const countPermissions = (permissions: Record<string, string[]>) =>
+  PERMISSION_MODULES.reduce((total, module) => total + (permissions[module]?.length ?? 0), 0);
+
 export default function AdminRolesPage() {
   const { roles, addRole, updateRole, deleteRole } = useAppState();
 
@@ -98,9 +101,7 @@ export default function AdminRolesPage() {
     setIsOpen(true);
   };
 
-  // NOTE: typed as plain `string` (not `keyof Role["permissions"]`) since
-  // Role["permissions"] in StateContext.tsx doesn't have a "messages" key
-  // yet — that's the underlying fix still needed there.
+
   const handlePermissionChange = (module: string, action: string, checked: boolean) => {
     if (isViewOnly || !canUpdateRole) return;
     const updatedModulePerms = [...(permissions[module] || [])];
@@ -145,11 +146,20 @@ export default function AdminRolesPage() {
       return;
     }
 
+    // Recompute the count from the live `permissions` state rather than
+    // trusting whatever was stored before. If admin privileges are on,
+    // the role effectively has every permission, so we report the full
+    // action set across all modules instead of the (empty) granular list.
+    const permissionCount = isAdminPrivileges
+      ? PERMISSION_MODULES.length * PERMISSION_ACTIONS.length
+      : countPermissions(permissions);
+
     const payload = {
       name: name.trim(),
       status,
       isAdminPrivileges,
-      permissions
+      permissions,
+      permissionCount,
     };
 
     setIsSubmitting(true);
@@ -244,69 +254,75 @@ export default function AdminRolesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
-              {roles.map((role) => (
-                <tr key={role.id} className="hover:bg-slate-50/50 transition">
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-slate-800">{role.name}</span>
-                        {role.isSystem && (
-                          <span className="w-4 h-4 rounded-full bg-green-100 text-green-700 text-[8px] font-black flex items-center justify-center" title="System defined role">
-                            ✓
+              {roles.map((role) => {
+                const liveCount = role.permissions
+                  ? countPermissions(role.permissions as Record<string, string[]>)
+                  : role.permissionCount ?? 0;
+
+                return (
+                  <tr key={role.id} className="hover:bg-slate-50/50 transition">
+                    <td className="px-6 py-4">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-slate-800">{role.name}</span>
+                          {role.isSystem && (
+                            <span className="w-4 h-4 rounded-full bg-green-100 text-green-700 text-[8px] font-black flex items-center justify-center" title="System defined role">
+                              ✓
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex gap-1.5 mt-1 text-[9px] font-bold uppercase">
+                          <span className="text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">SYSTEM</span>
+                          <span className="text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">
+                            {role.isAdminPrivileges ? "SUPER ADMIN" : "ADMIN"}
                           </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-slate-500 font-bold">
+                      {role.isAdminPrivileges ? "All Permissions" : `${liveCount} actions`}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold border ${
+                        role.status === "Active"
+                          ? "bg-green-50 text-green-700 border-green-100"
+                          : "bg-red-50 text-red-700 border-red-100"
+                      }`}>
+                        {role.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => handleOpenView(role)}
+                          className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition"
+                          title="View role details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        {canUpdateRole && (
+                          <button
+                            onClick={() => handleOpenEdit(role)}
+                            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition"
+                            title="Edit role"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        )}
+                        {!role.isSystem && canDeleteRole && (
+                          <button
+                            onClick={() => handleRequestDelete(role)}
+                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
+                            title="Delete custom role"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         )}
                       </div>
-                      <div className="flex gap-1.5 mt-1 text-[9px] font-bold uppercase">
-                        <span className="text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">SYSTEM</span>
-                        <span className="text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">
-                          {role.isAdminPrivileges ? "SUPER ADMIN" : "ADMIN"}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-slate-500 font-bold">
-                    {role.isAdminPrivileges ? "All Permissions" : `${role.permissionCount ?? 0} actions`}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold border ${
-                      role.status === "Active"
-                        ? "bg-green-50 text-green-700 border-green-100"
-                        : "bg-red-50 text-red-700 border-red-100"
-                    }`}>
-                      {role.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-1">
-                      <button
-                        onClick={() => handleOpenView(role)}
-                        className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition"
-                        title="View role details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      {canUpdateRole && (
-                        <button
-                          onClick={() => handleOpenEdit(role)}
-                          className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition"
-                          title="Edit role"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      )}
-                      {!role.isSystem && canDeleteRole && (
-                        <button
-                          onClick={() => handleRequestDelete(role)}
-                          className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
-                          title="Delete custom role"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -401,7 +417,15 @@ export default function AdminRolesPage() {
               {/* Granular Permissions Section */}
               {!isAdminPrivileges && (
                 <div className="space-y-4 pt-4 border-t border-slate-100">
-                  <h4 className="text-xs font-bold text-slate-700">Permissions</h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-slate-700">Permissions</h4>
+                    {/* Live count reflects current selections immediately,
+                        so admins see the number update as they check boxes
+                        instead of only after saving. */}
+                    <span className="text-[10px] font-bold text-purple-600">
+                      {countPermissions(permissions)} selected
+                    </span>
+                  </div>
                   <p className="text-[10px] text-slate-400">
                     {isViewOnly ? "Features this role can access." : "Select the features this role can access."}
                   </p>

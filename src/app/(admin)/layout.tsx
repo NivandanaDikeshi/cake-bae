@@ -157,7 +157,7 @@ export default function AdminLayout({
       name: "Users",
       href: "/admin/users",
       icon: Users,
-      module: "roles" as const, 
+      module: "users" as const, 
       action: "read" as const
     },
     {
@@ -182,11 +182,10 @@ export default function AdminLayout({
       dashboard: [] as string[],
       products: [] as string[],
       orders: [] as string[],
-      customers: [] as string[],
+      users: [] as string[],
       calendar: [] as string[],
       roles: [] as string[],
-      reports: [] as string[],
-      messages: [] as string[], // NOTE: also add this key to your Role type + Roles & Permissions admin page
+      messages: [] as string[],
     },
   };
 

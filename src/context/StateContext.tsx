@@ -76,10 +76,10 @@ export interface Role {
     dashboard: string[];
     products: string[];
     orders: string[];
-    customers: string[];
+    users: string[];
     calendar: string[];
     roles: string[];
-    reports: string[];
+    messages: string[];
   };
   isSystem?: boolean;
   permissionCount: number;
@@ -158,10 +158,10 @@ const initialRoles: Role[] = [
       dashboard: ["read"],
       products: ["create", "read", "update", "delete"],
       orders: ["create", "read", "update", "delete"],
-      customers: ["create", "read", "update", "delete"],
+      users: ["create", "read", "update", "delete"],
       calendar: ["create", "read", "update", "delete"],
       roles: ["create", "read", "update", "delete"],
-      reports: ["read"]
+      messages: ["create", "read", "update", "delete"]
     }
   },
   {
@@ -175,10 +175,10 @@ const initialRoles: Role[] = [
       dashboard: ["read"],
       products: ["create", "read", "update", "delete"],
       orders: ["create", "read", "update", "delete"],
-      customers: ["create", "read", "update", "delete"],
+      users: ["create", "read", "update", "delete"],
       calendar: ["create", "read", "update", "delete"],
       roles: ["read"],
-      reports: ["read"]
+      messages: ["read", "update"]
     }
   },
   {
@@ -191,10 +191,10 @@ const initialRoles: Role[] = [
       dashboard: ["read"],
       products: ["read"],
       orders: ["create", "read", "update"],
-      customers: ["create", "read", "update"],
+      users: ["create", "read", "update"],
       calendar: ["create", "read", "update", "delete"],
       roles: [],
-      reports: []
+      messages: []
     }
   },
   {
@@ -207,16 +207,56 @@ const initialRoles: Role[] = [
       dashboard: ["read"],
       products: ["read"],
       orders: ["read", "update"],
-      customers: ["read"],
+      users: ["read"],
       calendar: ["read", "update"],
       roles: [],
-      reports: []
+      messages: []
     }
   }
 ];
 
 const initialUsers: User[] = [];
 const initialOrders: Order[] = [];
+
+const migrateRolePermissions = (role: any): Role => {
+  const perms = { ...(role.permissions ?? {}) };
+  let changed = false;
+
+  if (perms.customers && !perms.users) {
+    perms.users = perms.customers;
+    delete perms.customers;
+    changed = true;
+  }
+  if (perms.reports && !perms.messages) {
+    perms.messages = perms.reports;
+    delete perms.reports;
+    changed = true;
+  }
+
+  const requiredKeys = ["dashboard", "products", "orders", "users", "calendar", "messages", "roles"];
+  requiredKeys.forEach((key) => {
+    if (!perms[key]) {
+      perms[key] = [];
+      changed = true;
+    }
+  });
+
+  if (changed || role.permissionCount === undefined) {
+    let count = 0;
+    Object.values(perms).forEach((list: any) => {
+      if (Array.isArray(list)) {
+        count += list.length;
+      }
+    });
+    return {
+      ...role,
+      permissions: perms,
+      permissionCount: count,
+    } as Role;
+  }
+
+  return role as Role;
+};
 
 export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -316,7 +356,32 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             await batch.commit();
             setRoles(initialRoles);
           } else {
-            setRoles(rolesData);
+            // Migrate loaded roles
+            const migratedRoles: Role[] = [];
+            let needsWrite = false;
+            const batch = writeBatch(db);
+
+            for (const r of rolesData) {
+              const migrated = migrateRolePermissions(r);
+              migratedRoles.push(migrated);
+
+              const originalSerialized = JSON.stringify(r.permissions);
+              const migratedSerialized = JSON.stringify(migrated.permissions);
+              if (originalSerialized !== migratedSerialized) {
+                const rRef = doc(db, "roles", r.id);
+                batch.update(rRef, {
+                  permissions: migrated.permissions,
+                  permissionCount: migrated.permissionCount
+                });
+                needsWrite = true;
+              }
+            }
+
+            if (needsWrite) {
+              console.log("Migrating role keys in Firestore...");
+              await batch.commit();
+            }
+            setRoles(migratedRoles);
           }
 
           // 3. Load Users from Firestore
@@ -375,7 +440,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }
 
           // Handle Authentication Session binding
-          const activeRoles = rolesData.length > 0 ? rolesData : initialRoles;
+          const activeRoles = (rolesData.length > 0 ? rolesData : initialRoles).map((r) => migrateRolePermissions(r));
           const activeUsers = usersData.length > 0 ? usersData : initialUsers;
 
           if (storedUser) {
@@ -464,7 +529,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               try {
                 const roleDocSnap = await getDoc(doc(db, "roles", u.roleId));
                 setCurrentRole(
-                  roleDocSnap.exists() ? ({ id: roleDocSnap.id, ...roleDocSnap.data() } as Role) : null
+                  roleDocSnap.exists() ? migrateRolePermissions({ id: roleDocSnap.id, ...roleDocSnap.data() }) : null
                 );
               } catch (roleErr) {
                 console.error("Error fetching current user's role:", roleErr);
@@ -533,7 +598,8 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const storedBlockedDates = localStorage.getItem("cb_blocked_dates");
 
     const localProducts = storedProducts ? JSON.parse(storedProducts) : initialProducts;
-    const localRoles = storedRoles ? JSON.parse(storedRoles) : initialRoles;
+    const rawRoles = storedRoles ? JSON.parse(storedRoles) : initialRoles;
+    const localRoles = rawRoles.map((r: any) => migrateRolePermissions(r));
     const localUsers = storedUsers ? JSON.parse(storedUsers) : initialUsers;
 
     setProducts(localProducts);

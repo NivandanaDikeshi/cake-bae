@@ -1,11 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Edit2, Trash2, Users, Search, X, AlertTriangle } from "lucide-react";
+import { Plus, Edit2, Trash2, Users, Search, X, AlertTriangle, Lock } from "lucide-react";
 import { useAppState, User } from "@/context/StateContext";
+import { useHasPermission } from "@/lib/permissions";
 
 export default function AdminUsersPage() {
   const { users, roles, addUser, updateUser, deleteUser } = useAppState();
+
+  const canCreateUser = useHasPermission("users", "create");
+  const canReadUser = useHasPermission("users", "read");
+  const canUpdateUser = useHasPermission("users", "update");
+  const canDeleteUser = useHasPermission("users", "delete");
 
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -25,6 +31,20 @@ export default function AdminUsersPage() {
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  if (!canReadUser) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+          <Lock className="w-6 h-6 text-slate-400" />
+        </div>
+        <h2 className="text-sm font-black text-slate-700">You don't have access to this page</h2>
+        <p className="text-xs text-slate-400 max-w-xs">
+          Your role doesn't include permission to view Staff Management. Contact an administrator if you believe this is a mistake.
+        </p>
+      </div>
+    );
+  }
 
   // This page is for STAFF logins only. Customers who sign up on the
   // storefront get roleId "customer" (or have no matching entry in the
@@ -46,6 +66,7 @@ export default function AdminUsersPage() {
   };
 
   const handleOpenAdd = () => {
+    if (!canCreateUser) return;
     setEditingId(null);
     setName("");
     setEmail("");
@@ -57,6 +78,7 @@ export default function AdminUsersPage() {
   };
 
   const handleOpenEdit = (user: User) => {
+    if (!canUpdateUser) return;
     setEditingId(user.id);
     setName(user.name);
     setEmail(user.email);
@@ -69,6 +91,8 @@ export default function AdminUsersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (editingId && !canUpdateUser) return;
+    if (!editingId && !canCreateUser) return;
     setError(null);
 
     if (!name.trim() || !email.trim() || !roleId) {
@@ -103,6 +127,7 @@ export default function AdminUsersPage() {
 
   // Open the confirmation modal instead of deleting immediately
   const handleRequestDelete = (user: User) => {
+    if (!canDeleteUser) return;
     setDeleteTarget(user);
     setDeleteError(null);
   };
@@ -114,7 +139,7 @@ export default function AdminUsersPage() {
   };
 
   const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget || !canDeleteUser) return;
     setIsDeleting(true);
     setDeleteError(null);
     try {
@@ -136,13 +161,15 @@ export default function AdminUsersPage() {
           <h1 className="text-2xl font-black text-slate-800">Staff Management</h1>
           <p className="text-slate-500 text-xs mt-0.5">Add, edit, or terminate staff user logins and control role bindings.</p>
         </div>
-        <button
-          onClick={handleOpenAdd}
-          className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold text-xs rounded-xl shadow-md transition h-fit w-fit"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Staff Member</span>
-        </button>
+        {canCreateUser && (
+          <button
+            onClick={handleOpenAdd}
+            className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold text-xs rounded-xl shadow-md transition h-fit w-fit"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Staff Member</span>
+          </button>
+        )}
       </div>
 
       {/* Filter bar */}
@@ -194,20 +221,24 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-1.5">
-                        <button
-                          onClick={() => handleOpenEdit(u)}
-                          className="p-1.5 bg-slate-50 text-slate-600 hover:bg-slate-100 rounded-lg transition"
-                          title="Edit staff details"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleRequestDelete(u)}
-                          className="p-1.5 bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition"
-                          title="Remove staff member"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {canUpdateUser && (
+                          <button
+                            onClick={() => handleOpenEdit(u)}
+                            className="p-1.5 bg-slate-50 text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                            title="Edit staff details"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                        )}
+                        {canDeleteUser && (
+                          <button
+                            onClick={() => handleRequestDelete(u)}
+                            className="p-1.5 bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition"
+                            title="Remove staff member"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

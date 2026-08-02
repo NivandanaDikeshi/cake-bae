@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, Edit3, ShoppingBag, Search, CreditCard, Clock, Check, X, ShieldAlert, RotateCcw } from "lucide-react";
+import { Eye, Edit3, ShoppingBag, Search, CreditCard, Clock, Check, X, ShieldAlert, RotateCcw, Lock } from "lucide-react";
 import { useAppState, Order } from "@/context/StateContext";
+import { useHasPermission } from "@/lib/permissions";
 
 // Maps each status to the status directly before it, so we know what
 // "undo" should revert to. Statuses not listed here have no previous step.
@@ -16,6 +17,9 @@ const PREVIOUS_STATUS: Partial<Record<Order["status"], Order["status"]>> = {
 export default function AdminOrdersPage() {
   const { orders, updateOrderStatus } = useAppState();
 
+  const canReadOrder = useHasPermission("orders", "read");
+  const canUpdateOrder = useHasPermission("orders", "update");
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -23,6 +27,20 @@ export default function AdminOrdersPage() {
 
   // Status lists
   const statusFilters = ["All", "Pending", "Confirmed", "Baking/Decorating", "Ready for Dispatch", "Delivered", "Completed", "Cancelled"];
+
+  if (!canReadOrder) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+          <Lock className="w-6 h-6 text-slate-400" />
+        </div>
+        <h2 className="text-sm font-black text-slate-700">You don't have access to this page</h2>
+        <p className="text-xs text-slate-400 max-w-xs">
+          Your role doesn't include permission to view Orders. Contact an administrator if you believe this is a mistake.
+        </p>
+      </div>
+    );
+  }
 
   // Safe display helper — falls back gracefully if a customer name was
   // never captured (e.g. an old/guest order that skipped the field),
@@ -68,6 +86,7 @@ export default function AdminOrdersPage() {
   };
 
   const handleStatusChange = (id: string, status: Order["status"]) => {
+    if (!canUpdateOrder) return;
     const paymentStatus = (status === "Delivered" || status === "Completed") ? "Paid" as const : undefined;
     updateOrderStatus(id, status, paymentStatus);
     
@@ -85,6 +104,7 @@ export default function AdminOrdersPage() {
   // Also clears paymentStatus back to Unpaid if we're undoing out of
   // Delivered, since that's the step that auto-marked it Paid.
   const handleUndoStatus = (id: string, currentStatus: Order["status"]) => {
+    if (!canUpdateOrder) return;
     const previous = PREVIOUS_STATUS[currentStatus];
     if (!previous) return;
 
@@ -330,65 +350,67 @@ export default function AdminOrdersPage() {
             )}
 
             {/* Action State transitions */}
-            <div className="border-t border-slate-100 pt-5 space-y-3">
-              <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px]">Advance Order Status</h4>
-              <div className="flex flex-wrap gap-2">
-                {selectedOrder.status === "Pending" && (
-                  <button
-                    onClick={() => handleStatusChange(selectedOrder.id, "Confirmed")}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-xs transition"
-                  >
-                    Confirm Order
-                  </button>
-                )}
-                {selectedOrder.status === "Confirmed" && (
-                  <button
-                    onClick={() => handleStatusChange(selectedOrder.id, "Baking/Decorating")}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow-xs transition"
-                  >
-                    Start Baking
-                  </button>
-                )}
-                {selectedOrder.status === "Baking/Decorating" && (
-                  <button
-                    onClick={() => handleStatusChange(selectedOrder.id, "Ready for Dispatch")}
-                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shadow-xs transition"
-                  >
-                    Mark Ready for Dispatch
-                  </button>
-                )}
-                {selectedOrder.status === "Ready for Dispatch" && (
-                  <button
-                    onClick={() => handleStatusChange(selectedOrder.id, "Delivered")}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-xs shadow-xs transition"
-                  >
-                    Mark Delivered & Completed
-                  </button>
-                )}
+            {canUpdateOrder && (
+              <div className="border-t border-slate-100 pt-5 space-y-3">
+                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px]">Advance Order Status</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedOrder.status === "Pending" && (
+                    <button
+                      onClick={() => handleStatusChange(selectedOrder.id, "Confirmed")}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-xs transition"
+                    >
+                      Confirm Order
+                    </button>
+                  )}
+                  {selectedOrder.status === "Confirmed" && (
+                    <button
+                      onClick={() => handleStatusChange(selectedOrder.id, "Baking/Decorating")}
+                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow-xs transition"
+                    >
+                      Start Baking
+                    </button>
+                  )}
+                  {selectedOrder.status === "Baking/Decorating" && (
+                    <button
+                      onClick={() => handleStatusChange(selectedOrder.id, "Ready for Dispatch")}
+                      className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shadow-xs transition"
+                    >
+                      Mark Ready for Dispatch
+                    </button>
+                  )}
+                  {selectedOrder.status === "Ready for Dispatch" && (
+                    <button
+                      onClick={() => handleStatusChange(selectedOrder.id, "Delivered")}
+                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-xs shadow-xs transition"
+                    >
+                      Mark Delivered & Completed
+                    </button>
+                  )}
 
-                {/* Undo button — reverts to the previous status in the flow.
-                    Hidden when there's no previous step (Pending) or when
-                    the order is Completed/Cancelled, since those are terminal. */}
-                {PREVIOUS_STATUS[selectedOrder.status] && (
-                  <button
-                    onClick={() => handleUndoStatus(selectedOrder.id, selectedOrder.status)}
-                    className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl text-xs transition flex items-center gap-1.5"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    Undo (Back to {PREVIOUS_STATUS[selectedOrder.status]})
-                  </button>
-                )}
+                  {/* Undo button — reverts to the previous status in the flow.
+                      Hidden when there's no previous step (Pending) or when
+                      the order is Completed/Cancelled, since those are terminal. */}
+                  {PREVIOUS_STATUS[selectedOrder.status] && (
+                    <button
+                      onClick={() => handleUndoStatus(selectedOrder.id, selectedOrder.status)}
+                      className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl text-xs transition flex items-center gap-1.5"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Undo (Back to {PREVIOUS_STATUS[selectedOrder.status]})
+                    </button>
+                  )}
 
-                {selectedOrder.status !== "Completed" && selectedOrder.status !== "Delivered" && selectedOrder.status !== "Cancelled" && (
-                  <button
-                    onClick={() => handleStatusChange(selectedOrder.id, "Cancelled")}
-                    className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 font-bold rounded-xl text-xs transition ml-auto"
-                  >
-                    Cancel Order
-                  </button>
-                )}
+                  {selectedOrder.status !== "Completed" && selectedOrder.status !== "Delivered" && selectedOrder.status !== "Cancelled" && (
+                    <button
+                      onClick={() => handleStatusChange(selectedOrder.id, "Cancelled")}
+                      className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 font-bold rounded-xl text-xs transition ml-auto"
+                    >
+                      Cancel Order
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}

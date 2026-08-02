@@ -10,6 +10,8 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
+import { useHasPermission } from "@/lib/permissions";
+import { Lock } from "lucide-react";
 import {
   Eye,
   Search,
@@ -41,6 +43,9 @@ function toWhatsAppNumber(phone: string): string {
 }
 
 export default function AdminMessagesPage() {
+  const canReadMessage = useHasPermission("messages", "read");
+  const canUpdateMessage = useHasPermission("messages", "update");
+
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -102,6 +107,7 @@ export default function AdminMessagesPage() {
 
   // Toggles between "New" and "Replied" for the given message id/current status
   const toggleReplied = async (id: string, currentStatus: ContactMessage["status"]) => {
+    if (!canUpdateMessage) return;
     const nextStatus: ContactMessage["status"] = currentStatus === "Replied" ? "New" : "Replied";
     await updateDoc(doc(db, "contactMessages", id), { status: nextStatus });
     if (selectedMessage && selectedMessage.id === id) {
@@ -117,10 +123,24 @@ export default function AdminMessagesPage() {
     );
     window.open(`https://wa.me/${number}?text=${text}`, "_blank", "noopener,noreferrer");
     // Opening WhatsApp still marks it as replied; use the toggle button afterward if you need to undo it
-    if (msg.status !== "Replied") {
+    if (msg.status !== "Replied" && canUpdateMessage) {
       toggleReplied(msg.id, msg.status);
     }
   };
+
+  if (!canReadMessage) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+          <Lock className="w-6 h-6 text-slate-400" />
+        </div>
+        <h2 className="text-sm font-black text-slate-700">You don't have access to this page</h2>
+        <p className="text-xs text-slate-400 max-w-xs">
+          Your role doesn't include permission to view Customer Messages. Contact an administrator if you believe this is a mistake.
+        </p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -300,38 +320,40 @@ export default function AdminMessagesPage() {
             </div>
 
             {/* Actions */}
-            <div className="border-t border-slate-100 pt-5 space-y-3">
-              <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px]">Actions</h4>
-              <div className="flex flex-wrap gap-2">
-                {selectedMessage.phone && (
-                  <button
-                    onClick={() => replyOnWhatsApp(selectedMessage)}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-xs shadow-xs transition flex items-center gap-1.5"
-                  >
-                    <Phone className="w-3.5 h-3.5" />
-                    Reply on WhatsApp
-                  </button>
-                )}
+            {canUpdateMessage && (
+              <div className="border-t border-slate-100 pt-5 space-y-3">
+                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[10px]">Actions</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedMessage.phone && (
+                    <button
+                      onClick={() => replyOnWhatsApp(selectedMessage)}
+                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-xs shadow-xs transition flex items-center gap-1.5"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      Reply on WhatsApp
+                    </button>
+                  )}
 
-                {selectedMessage.status === "New" ? (
-                  <button
-                    onClick={() => toggleReplied(selectedMessage.id, selectedMessage.status)}
-                    className="px-4 py-2 border border-green-200 text-green-700 hover:bg-green-50 font-bold rounded-xl text-xs transition flex items-center gap-1.5"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Mark as Replied
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => toggleReplied(selectedMessage.id, selectedMessage.status)}
-                    className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl text-xs transition flex items-center gap-1.5"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    Undo (Mark as New)
-                  </button>
-                )}
+                  {selectedMessage.status === "New" ? (
+                    <button
+                      onClick={() => toggleReplied(selectedMessage.id, selectedMessage.status)}
+                      className="px-4 py-2 border border-green-200 text-green-700 hover:bg-green-50 font-bold rounded-xl text-xs transition flex items-center gap-1.5"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Mark as Replied
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => toggleReplied(selectedMessage.id, selectedMessage.status)}
+                      className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl text-xs transition flex items-center gap-1.5"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Undo (Mark as New)
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}

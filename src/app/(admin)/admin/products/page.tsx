@@ -1,12 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Edit2, Trash2, Search, Database, Cake, X, Star, AlertTriangle } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, Database, Cake, X, Star, AlertTriangle, Lock } from "lucide-react";
 import { useAppState, Product } from "@/context/StateContext";
 import { ImageUpload } from "@/components/ImageUpload";
+import { useHasPermission } from "@/lib/permissions";
 
 export default function AdminProductsPage() {
   const { products, categories, addProduct, updateProduct, deleteProduct } = useAppState();
+
+  const canCreateProduct = useHasPermission("products", "create");
+  const canReadProduct = useHasPermission("products", "read");
+  const canUpdateProduct = useHasPermission("products", "update");
+  const canDeleteProduct = useHasPermission("products", "delete");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -43,6 +49,20 @@ export default function AdminProductsPage() {
   const [newFlavourInput, setNewFlavourInput] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  if (!canReadProduct) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+          <Lock className="w-6 h-6 text-slate-400" />
+        </div>
+        <h2 className="text-sm font-black text-slate-700">You don't have access to this page</h2>
+        <p className="text-xs text-slate-400 max-w-xs">
+          Your role doesn't include permission to view Product Catalog. Contact an administrator if you believe this is a mistake.
+        </p>
+      </div>
+    );
+  }
+
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           p.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -54,6 +74,7 @@ export default function AdminProductsPage() {
     product.sizes.length > 0 && product.sizes.every((size) => product.sizePrices?.[size] !== undefined);
 
   const handleOpenAdd = () => {
+    if (!canCreateProduct) return;
     const defaultSizes = ["500g", "1kg", "2kg"];
     const defaultFlavours = ["Chocolate", "Vanilla"];
     setEditingId(null);
@@ -73,6 +94,7 @@ export default function AdminProductsPage() {
   };
 
   const handleOpenEdit = (product: Product) => {
+    if (!canUpdateProduct) return;
     setEditingId(product.id);
     setName(product.name);
     setDescription(product.description);
@@ -150,6 +172,8 @@ export default function AdminProductsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (editingId && !canUpdateProduct) return;
+    if (!editingId && !canCreateProduct) return;
     setError(null);
 
     if (!name || !description) {
@@ -218,11 +242,12 @@ export default function AdminProductsPage() {
 
   // Opens the delete confirmation modal instead of deleting immediately.
   const handleRequestDelete = (product: Product) => {
+    if (!canDeleteProduct) return;
     setDeleteTarget(product);
   };
 
   const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget || !canDeleteProduct) return;
     setIsDeleting(true);
     try {
       await deleteProduct(deleteTarget.id);
@@ -244,13 +269,15 @@ export default function AdminProductsPage() {
           <h1 className="text-2xl font-black text-slate-800">Product & Categories</h1>
           <p className="text-slate-500 text-xs mt-0.5">Manage cake catalogs, edit variants, set prices, and upload photos.</p>
         </div>
-        <button
-          onClick={handleOpenAdd}
-          className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold text-xs rounded-xl shadow-md transition h-fit w-fit"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Product</span>
-        </button>
+        {canCreateProduct && (
+          <button
+            onClick={handleOpenAdd}
+            className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold text-xs rounded-xl shadow-md transition h-fit w-fit"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Product</span>
+          </button>
+        )}
       </div>
 
       {/* Filters bar */}
@@ -360,20 +387,24 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-1.5">
-                        <button
-                          onClick={() => handleOpenEdit(p)}
-                          className="p-1.5 bg-slate-50 text-slate-600 hover:bg-slate-100 rounded-lg transition"
-                          title="Edit product"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleRequestDelete(p)}
-                          className="p-1.5 bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition"
-                          title="Delete product"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {canUpdateProduct && (
+                          <button
+                            onClick={() => handleOpenEdit(p)}
+                            className="p-1.5 bg-slate-50 text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                            title="Edit product"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                        )}
+                        {canDeleteProduct && (
+                          <button
+                            onClick={() => handleRequestDelete(p)}
+                            className="p-1.5 bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition"
+                            title="Delete product"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
