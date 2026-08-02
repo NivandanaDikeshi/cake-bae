@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import {
   Sparkles,
   MessageCircle,
@@ -16,18 +18,9 @@ import {
   User,
   Phone,
   MessageSquare,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from "lucide-react";
-
-// ── Brand palette (Cake Bae) — used identically on every page ──────────
-// Aubergine #2F0538  — deep bg / primary dark surface
-// Plum      #4A1054  — gradient partner / hover depth
-// Orchid    #9D5CDB  — primary accent, buttons, active states
-// Lavender  #F7F1FB  — light section bg
-// Ink       #241129  — body text color
-// Gold      #F0B429  — reserved for one meaning only: "Ready for Dispatch"
-// Fonts: Fraunces (display) + Inter (body) — used site-wide, see BRAND_FONTS.
-// ──────────────────────────────────────────────────────────────────────
 
 type FAQItem = {
   question: string;
@@ -41,9 +34,6 @@ interface ContactFormState {
   phone: string;
   message: string;
 }
-
-// WhatsApp business number for Cake Bae (update with the real number, country code, no + or spaces)
-const WHATSAPP_NUMBER = "94771234567";
 
 export default function FAQPage() {
   const [activeFAQ, setActiveFAQ] = useState<number | null>(0);
@@ -84,6 +74,7 @@ export default function FAQPage() {
   });
   const [formErrors, setFormErrors] = useState<Partial<ContactFormState>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -112,26 +103,34 @@ export default function FAQPage() {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
-    const lines = [
-      `Hi Cake Bae! I'm ${formData.name}.`,
-      formData.email ? `Email: ${formData.email}` : null,
-      formData.phone ? `Phone: ${formData.phone}` : null,
-      "",
-      formData.message,
-    ].filter(Boolean);
+    setSubmitting(true);
+    try {
+      // Save to Firestore so it shows up in the admin panel's Messages page
+      await addDoc(collection(db, "contactMessages"), {
+        name: formData.name.trim(),
+        email: formData.email.trim() || null,
+        phone: formData.phone.trim() || null,
+        message: formData.message.trim(),
+        status: "new",
+        createdAt: serverTimestamp(),
+      });
 
-    const text = encodeURIComponent(lines.join("\n"));
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
-
-    setSubmitted(true);
-    window.open(url, "_blank", "noopener,noreferrer");
-
-    setFormData({ name: "", email: "", phone: "", message: "" });
-    setTimeout(() => setSubmitted(false), 5000);
+      setSubmitted(true);
+      setFormData({ name: "", email: "", phone: "", message: "" });
+      setTimeout(() => setSubmitted(false), 5000);
+    } catch (err) {
+      console.error("Failed to save contact message:", err);
+      setFormErrors((prev) => ({
+        ...prev,
+        message: "Something went wrong sending your message. Please try again.",
+      }));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -242,7 +241,7 @@ export default function FAQPage() {
             Send Us A Message
           </h2>
           <p className="text-[#241129]/60 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
-            Didn't find your answer above? Send us a note and we'll get back to you on WhatsApp.
+            Didn't find your answer above? Send us a note and we'll get back to you.
           </p>
         </div>
 
@@ -254,7 +253,7 @@ export default function FAQPage() {
           {submitted && (
             <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-semibold">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>Thanks! We've opened WhatsApp with your message ready to send.</span>
+              <span>Thanks! Your message has been sent — we'll get back to you soon.</span>
             </div>
           )}
 
@@ -354,10 +353,20 @@ export default function FAQPage() {
 
           <button
             type="submit"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#2F0538] hover:bg-[#4A1054] text-white text-sm font-bold rounded-xl shadow-md transition-all duration-300 transform hover:-translate-y-0.5"
+            disabled={submitting}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#9D5CDB] hover:bg-[#4A1054] disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl shadow-md transition-all duration-300 transform hover:-translate-y-0.5"
           >
-            <Send className="w-4 h-4" />
-            <span>Send Message</span>
+            {submitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Sending...</span>
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                <span>Send Message</span>
+              </>
+            )}
           </button>
         </form>
       </section>

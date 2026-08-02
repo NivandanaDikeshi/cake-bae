@@ -101,7 +101,7 @@ export default function AdminCalendarPage() {
               </div>
               <button
                 type="submit"
-                className="w-full py-3 bg-[#2F0538] hover:bg-[#4A1054] text-white font-bold text-xs rounded-xl shadow-xs transition"
+                className="w-full py-3 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold text-xs rounded-xl shadow-xs transition"
               >
                 Mark Date Fully Booked
               </button>

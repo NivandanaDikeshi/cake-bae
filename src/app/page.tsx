@@ -169,7 +169,7 @@ export default function StoreFrontHome() {
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link
                   href="/shop"
-                  className="w-full sm:w-auto text-center px-8 py-4 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold rounded-xl shadow-lg shadow-[#9D5CDB]/30 transition-all duration-300 transform hover:-translate-y-0.5"
+                  className="w-full sm:w-auto text-center block px-8 py-4 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold rounded-xl shadow-lg shadow-[#9D5CDB]/30 transition-colors"
                 >
                   Order Online Now
                 </Link>
@@ -177,7 +177,7 @@ export default function StoreFrontHome() {
                   href="https://www.facebook.com/share/1KGEzKfUu9/?mibextid=wwXIfr"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-white/20 hover:border-white/50 hover:bg-white/5 text-white font-bold rounded-xl transition-all duration-300"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-white/20 hover:border-white/50 hover:bg-white/5 text-white font-bold rounded-xl transition-colors"
                 >
                   <MessageCircle className="w-5 h-5" />
                   <span>Enquire on FB</span>
@@ -244,24 +244,34 @@ export default function StoreFrontHome() {
               <Link
                 key={cat.name}
                 href={`/shop?category=${encodeURIComponent(cat.name)}`}
-                className="group flex flex-col items-center text-center p-8 bg-white border border-[#9D5CDB]/15 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1.5"
+                className="group relative overflow-hidden rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-300 h-72"
               >
-                <span className="relative flex items-center justify-center w-20 h-20 rounded-full overflow-hidden ring-1 ring-[#9D5CDB]/30 mb-4 group-hover:ring-[#9D5CDB] transition-all">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={catImage}
-                    alt={cat.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition duration-500 ease-out"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = galleryFallback;
-                    }}
-                  />
-                </span>
-                <h3 className="font-display text-lg font-semibold text-[#2F0538] mb-1">{cat.name}</h3>
-                <p className="text-xs text-[#241129]/60 mb-4 leading-relaxed">{cat.description}</p>
-                <span className="font-mono text-[11px] font-semibold px-3 py-1 bg-[#F7F1FB] border border-[#9D5CDB]/15 rounded-full text-[#9D5CDB]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={catImage}
+                  alt={cat.name}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = galleryFallback;
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#2F0538] via-[#4A1054]/40 to-transparent" />
+                <div className="absolute inset-0 bg-[#9D5CDB]/10 mix-blend-multiply" />
+
+                <span className="absolute top-4 right-4 bg-white/15 backdrop-blur-sm text-white text-[10px] font-mono font-semibold px-2.5 py-1 rounded-full border border-white/20">
                   {cat.count}
                 </span>
+
+                <div className="absolute inset-x-0 bottom-0 p-6 space-y-1.5">
+                  <h3 className="font-display font-semibold text-white tracking-tight text-xl">
+                    {cat.name}
+                  </h3>
+                  <p className="text-xs text-white/75 leading-relaxed max-w-xs">{cat.description}</p>
+                  <span className="inline-flex items-center gap-1 pt-2 text-[#F7F1FB] text-xs font-bold opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-300">
+                    Shop now
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </span>
+                </div>
               </Link>
             );
           })}
@@ -324,7 +334,7 @@ export default function StoreFrontHome() {
                     </span>
                     <Link
                       href={`/shop/${product.id}`}
-                      className="px-3.5 py-1.5 bg-[#F7F1FB] hover:bg-[#2F0538] hover:text-white text-[#9D5CDB] text-xs font-bold rounded-lg transition-colors duration-300"
+                      className="px-3.5 py-1.5 bg-[#F7F1FB] hover:bg-[#4A1054] hover:text-white text-[#9D5CDB] text-xs font-bold rounded-lg transition-colors duration-300"
                     >
                       Customize
                     </Link>

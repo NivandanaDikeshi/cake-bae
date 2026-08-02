@@ -237,7 +237,7 @@ export default function StoreFrontHome() {
                     </span>
                     <Link
                       href={`/shop/${product.id}`}
-                      className="px-3.5 py-1.5 bg-purple-50 hover:bg-purple-900 hover:text-white text-purple-700 text-xs font-bold rounded-lg transition-colors duration-300"
+                      className="px-3.5 py-1.5 bg-[#F7F1FB] hover:bg-[#4A1054] hover:text-white text-[#9D5CDB] text-xs font-bold rounded-lg transition-colors duration-300"
                     >
                       Customize
                     </Link>

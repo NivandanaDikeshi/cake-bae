@@ -138,7 +138,7 @@ export default function AdminUsersPage() {
         </div>
         <button
           onClick={handleOpenAdd}
-          className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-[#9D5CDB] hover:bg-[#8545C2] text-white font-bold text-xs rounded-xl shadow-md transition h-fit w-fit"
+          className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold text-xs rounded-xl shadow-md transition h-fit w-fit"
         >
           <Plus className="w-4 h-4" />
           <span>Add Staff Member</span>
@@ -325,7 +325,7 @@ export default function AdminUsersPage() {
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-[#9D5CDB] hover:bg-[#8545C2] text-white font-bold rounded-xl text-xs shadow-md transition"
+                className="px-5 py-2.5 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold rounded-xl text-xs shadow-md transition"
               >
                 {editingId ? "Save Changes" : "Register User"}
               </button>

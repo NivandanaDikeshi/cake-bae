@@ -186,7 +186,7 @@ export default function UserLoginPage() {
           <button
             type="submit"
             disabled={isSubmitting || !!successMessage}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#2F0538] py-3.5 text-white font-bold transition hover:bg-[#4A1054] disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#9D5CDB] py-3.5 text-white font-bold transition hover:bg-[#4A1054] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "Signing In..." : successMessage ? "Redirecting..." : "Log In to Dashboard"}
             {!isSubmitting && !successMessage && <ArrowRight className="w-5 h-5" />}

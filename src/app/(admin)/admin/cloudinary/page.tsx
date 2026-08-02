@@ -88,7 +88,7 @@ export default function CloudinarySettingsPage() {
           <div className="flex items-center gap-4 pt-2">
             <button
               type="submit"
-              className="px-6 py-3 bg-[#2F0538] hover:bg-[#4A1054] text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5"
+              className="px-6 py-3 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5"
             >
               {success ? (
                 <>

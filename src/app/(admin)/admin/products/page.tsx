@@ -246,7 +246,7 @@ export default function AdminProductsPage() {
         </div>
         <button
           onClick={handleOpenAdd}
-          className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-[#9D5CDB] hover:bg-[#8545C2] text-white font-bold text-xs rounded-xl shadow-md transition h-fit w-fit"
+          className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold text-xs rounded-xl shadow-md transition h-fit w-fit"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Product</span>
@@ -271,7 +271,7 @@ export default function AdminProductsPage() {
             onClick={() => setSelectedCategory("All")}
             className={`px-3 py-2 rounded-lg text-xs font-bold border transition ${
               selectedCategory === "All"
-                ? "bg-[#2F0538] border-[#2F0538] text-white shadow-xs"
+                ? "bg-[#4A1054] border-[#4A1054] text-white shadow-xs"
                 : "bg-white border-purple-50 text-slate-600 hover:bg-purple-50"
             }`}
           >
@@ -283,7 +283,7 @@ export default function AdminProductsPage() {
               onClick={() => setSelectedCategory(cat)}
               className={`px-3 py-2 rounded-lg text-xs font-bold border transition ${
                 selectedCategory === cat
-                  ? "bg-[#2F0538] border-[#2F0538] text-white shadow-xs"
+                  ? "bg-[#4A1054] border-[#4A1054] text-white shadow-xs"
                   : "bg-white border-purple-50 text-slate-600 hover:bg-purple-50"
               }`}
             >
@@ -397,7 +397,7 @@ export default function AdminProductsPage() {
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" onClick={() => setIsOpen(false)}></div>
           <form
             onSubmit={handleSubmit}
-            className="relative bg-white border border-purple-100 rounded-3xl w-full max-w-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-2xl space-y-6 z-10"
+            className="relative bg-white border border-[#9D5CDB]/20 rounded-3xl w-full max-w-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-2xl space-y-6 z-10"
           >
             {/* Header */}
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -407,7 +407,7 @@ export default function AdminProductsPage() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1 text-slate-400 hover:bg-slate-100 rounded-lg"
+                className="p-1 text-slate-400 hover:bg-[#9D5CDB]/10 hover:text-[#4A1054] rounded-lg transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -430,7 +430,7 @@ export default function AdminProductsPage() {
                     placeholder="e.g. Chocolate Fudge Gateau"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-white border border-purple-100 rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-[#9D5CDB]"
+                    className="w-full bg-white border border-[#9D5CDB]/20 rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/20 focus:border-[#9D5CDB] transition"
                   />
                 </div>
 
@@ -439,7 +439,7 @@ export default function AdminProductsPage() {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-white border border-purple-100 rounded-xl p-3 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-[#9D5CDB]"
+                    className="w-full bg-white border border-[#9D5CDB]/20 rounded-xl p-3 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/20 focus:border-[#9D5CDB] transition"
                   >
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>
@@ -455,7 +455,7 @@ export default function AdminProductsPage() {
                 <select
                   value={leadTime}
                   onChange={(e) => setLeadTime(e.target.value)}
-                  className="w-full bg-white border border-purple-100 rounded-xl p-3 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-[#9D5CDB]"
+                  className="w-full bg-white border border-[#9D5CDB]/20 rounded-xl p-3 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/20 focus:border-[#9D5CDB] transition"
                 >
                   <option value="12 Hours">12 Hours (Fast)</option>
                   <option value="24 Hours">24 Hours (Standard)</option>
@@ -472,7 +472,7 @@ export default function AdminProductsPage() {
                   placeholder="Describe your cake composition, toppings, and icing details..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-white border border-purple-100 rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-[#9D5CDB] resize-none"
+                  className="w-full bg-white border border-[#9D5CDB]/20 rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/20 focus:border-[#9D5CDB] transition resize-none"
                 />
               </div>
 
@@ -483,13 +483,13 @@ export default function AdminProductsPage() {
                   {sizes.map((size) => (
                     <span
                       key={size}
-                      className="inline-flex items-center gap-1.5 bg-purple-50 border border-purple-100 text-purple-700 px-2.5 py-1 rounded-lg text-xs font-bold"
+                      className="inline-flex items-center gap-1.5 bg-[#9D5CDB]/10 border border-[#9D5CDB]/20 text-[#4A1054] px-2.5 py-1 rounded-lg text-xs font-bold"
                     >
                       <span>{size}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveSize(size)}
-                        className="text-purple-400 hover:text-purple-700"
+                        className="text-[#9D5CDB] hover:text-[#2F0538] transition"
                       >
                         ×
                       </button>
@@ -502,12 +502,12 @@ export default function AdminProductsPage() {
                     placeholder="Add Size (e.g. 500g, 1.5kg)"
                     value={newSizeInput}
                     onChange={(e) => setNewSizeInput(e.target.value)}
-                    className="flex-1 bg-white border border-purple-100 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                    className="flex-1 bg-white border border-[#9D5CDB]/20 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/20 focus:border-[#9D5CDB] transition"
                   />
                   <button
                     type="button"
                     onClick={handleAddSize}
-                    className="px-3 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl text-xs font-bold transition"
+                    className="px-3 bg-[#9D5CDB]/15 hover:bg-[#9D5CDB]/25 text-[#4A1054] rounded-xl text-xs font-bold transition"
                   >
                     Add
                   </button>
@@ -529,8 +529,8 @@ export default function AdminProductsPage() {
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
                           {size}
                         </label>
-                        <div className="flex items-center border border-purple-100 rounded-xl overflow-hidden bg-white focus-within:ring-2 focus-within:ring-purple-500/20 focus-within:border-[#9D5CDB]">
-                          <span className="pl-3 text-[10px] text-slate-400 font-semibold">Rs.</span>
+                        <div className="flex items-center border border-[#9D5CDB]/20 rounded-xl overflow-hidden bg-white focus-within:ring-2 focus-within:ring-[#9D5CDB]/20 focus-within:border-[#9D5CDB] transition">
+                          <span className="pl-3 text-[10px] text-[#9D5CDB] font-semibold">Rs.</span>
                           <input
                             type="text"
                             inputMode="numeric"
@@ -554,13 +554,13 @@ export default function AdminProductsPage() {
                   {flavours.map((flavour) => (
                     <span
                       key={flavour}
-                      className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-bold"
+                      className="inline-flex items-center gap-1.5 bg-[#9D5CDB]/10 border border-[#9D5CDB]/20 text-[#4A1054] px-2.5 py-1 rounded-lg text-xs font-bold"
                     >
                       <span>{flavour}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveFlavour(flavour)}
-                        className="text-slate-400 hover:text-slate-700"
+                        className="text-[#9D5CDB] hover:text-[#2F0538] transition"
                       >
                         ×
                       </button>
@@ -573,12 +573,12 @@ export default function AdminProductsPage() {
                     placeholder="Add Flavour (e.g. Red Velvet, Almond)"
                     value={newFlavourInput}
                     onChange={(e) => setNewFlavourInput(e.target.value)}
-                    className="flex-1 bg-white border border-purple-100 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                    className="flex-1 bg-white border border-[#9D5CDB]/20 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/20 focus:border-[#9D5CDB] transition"
                   />
                   <button
                     type="button"
                     onClick={handleAddFlavour}
-                    className="px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition"
+                    className="px-3 bg-[#9D5CDB]/15 hover:bg-[#9D5CDB]/25 text-[#4A1054] rounded-xl text-xs font-bold transition"
                   >
                     Add
                   </button>
@@ -600,8 +600,8 @@ export default function AdminProductsPage() {
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
                           {flavour}
                         </label>
-                        <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white focus-within:ring-2 focus-within:ring-purple-500/20 focus-within:border-[#9D5CDB]">
-                          <span className="pl-3 text-[10px] text-slate-400 font-semibold">+Rs.</span>
+                        <div className="flex items-center border border-[#9D5CDB]/20 rounded-xl overflow-hidden bg-white focus-within:ring-2 focus-within:ring-[#9D5CDB]/20 focus-within:border-[#9D5CDB] transition">
+                          <span className="pl-3 text-[10px] text-[#9D5CDB] font-semibold">+Rs.</span>
                           <input
                             type="text"
                             inputMode="numeric"
@@ -625,13 +625,13 @@ export default function AdminProductsPage() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="px-4 py-2 border border-purple-100 text-slate-600 hover:bg-slate-50 font-bold rounded-xl text-xs transition"
+                className="px-4 py-2 border border-[#9D5CDB]/20 text-slate-600 hover:bg-[#9D5CDB]/5 font-bold rounded-xl text-xs transition"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-[#9D5CDB] hover:bg-[#8545C2] text-white font-bold rounded-xl text-xs shadow-md transition"
+                className="px-5 py-2.5 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold rounded-xl text-xs shadow-md transition"
               >
                 {editingId ? "Save Changes" : "Create Product"}
               </button>

@@ -137,7 +137,7 @@ export default function GalleryPage() {
                     activeCategory === cat
                       ? "border-[#9D5CDB] bg-[#9D5CDB] text-white"
                       : "border-transparent bg-transparent text-[#9D5CDB]"
-                  } hover:bg-[#2F0538] hover:border-[#2F0538] hover:text-white`}
+                  } hover:bg-[#4A1054] hover:border-[#4A1054] hover:text-white`}
                 >
                   {cat}
                 </button>
@@ -146,7 +146,7 @@ export default function GalleryPage() {
 
             <button
               onClick={handleShuffle}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold border border-[#9D5CDB]/20 text-[#9D5CDB] bg-[#F7F1FB] hover:bg-[#2F0538] hover:border-[#9D5CDB] hover:text-white transition-all duration-200 shrink-0 group"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold border border-[#9D5CDB]/20 text-[#9D5CDB] bg-[#F7F1FB] hover:bg-[#4A1054] hover:border-[#9D5CDB] hover:text-white transition-all duration-200 shrink-0 group"
             >
               <Shuffle className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
               <span>Shuffle</span>

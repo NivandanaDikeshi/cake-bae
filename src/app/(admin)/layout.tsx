@@ -19,7 +19,8 @@ import {
   FileImage,
   Lock,
   ChevronRight,
-  DollarSign
+  DollarSign,
+  MessageSquare
 } from "lucide-react";
 import { useAppState } from "@/context/StateContext";
 
@@ -105,6 +106,69 @@ export default function AdminLayout({
     );
   }
 
+  // Sidebar Links
+  const sidebarLinks = [
+    {
+      name: "Dashboard",
+      href: "/admin/dashboard",
+      icon: LayoutDashboard,
+      module: "dashboard" as const,
+      action: "read" as const
+    },
+    {
+      name: "Orders",
+      href: "/admin/orders",
+      icon: ShoppingBag,
+      module: "orders" as const,
+      action: "read" as const
+    },
+    {
+      name: "Products",
+      href: "/admin/products",
+      icon: Database,
+      module: "products" as const,
+      action: "read" as const
+    },
+
+    {
+      name: "Calendar",
+      href: "/admin/calendar",
+      icon: Calendar,
+      module: "calendar" as const,
+      action: "read" as const
+    },
+
+    {
+      name: "Messages",
+      href: "/admin/messages",
+      icon: MessageSquare,
+      module: "messages" as const,
+      action: "read" as const
+    },
+
+    {
+      name: "Roles",
+      href: "/admin/roles",
+      icon: ShieldCheck,
+      module: "roles" as const,
+      action: "read" as const
+    },
+    {
+      name: "Users",
+      href: "/admin/users",
+      icon: Users,
+      module: "roles" as const, 
+      action: "read" as const
+    },
+    {
+      name: "Cloudinary Settings",
+      href: "/admin/cloudinary",
+      icon: FileImage,
+      module: "dashboard" as const, 
+      action: "read" as const
+    }
+  ];
+
   // Safe fallback while currentRole is still resolving, so the sidebar/nav
   // can render immediately instead of waiting and re-blocking on every
   // navigation. Real permissions apply as soon as currentRole loads.
@@ -115,70 +179,16 @@ export default function AdminLayout({
     isAdminPrivileges: false,
     permissionCount: 0,
     permissions: {
-      dashboard: [],
-      products: [],
-      orders: [],
-      customers: [],
-      calendar: [],
-      roles: [],
-      reports: [],
+      dashboard: [] as string[],
+      products: [] as string[],
+      orders: [] as string[],
+      customers: [] as string[],
+      calendar: [] as string[],
+      roles: [] as string[],
+      reports: [] as string[],
+      messages: [] as string[], // NOTE: also add this key to your Role type + Roles & Permissions admin page
     },
   };
-
-  // Sidebar Links
-  const sidebarLinks = [
-    {
-      name: "Dashboard",
-      href: "/admin/dashboard",
-      icon: LayoutDashboard,
-      module: "dashboard",
-      action: "read"
-    },
-    {
-      name: "Orders",
-      href: "/admin/orders",
-      icon: ShoppingBag,
-      module: "orders",
-      action: "read"
-    },
-    {
-      name: "Products",
-      href: "/admin/products",
-      icon: Database,
-      module: "products",
-      action: "read"
-    },
-
-    {
-      name: "Calendar",
-      href: "/admin/calendar",
-      icon: Calendar,
-      module: "calendar",
-      action: "read"
-    },
-
-    {
-      name: "Roles",
-      href: "/admin/roles",
-      icon: ShieldCheck,
-      module: "roles",
-      action: "read"
-    },
-    {
-      name: "Users",
-      href: "/admin/users",
-      icon: Users,
-      module: "roles", // Users falls under roles module permissions
-      action: "read"
-    },
-    {
-      name: "Cloudinary Settings",
-      href: "/admin/cloudinary",
-      icon: FileImage,
-      module: "dashboard", // Settings under dashboard permissions
-      action: "read"
-    }
-  ];
 
   // Check if current user role has permissions for this path
   const hasPermissionForPath = (path: string) => {

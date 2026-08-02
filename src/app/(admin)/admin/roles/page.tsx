@@ -1,18 +1,28 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Eye, Edit, Trash2, X, ShieldAlert, Check, AlertTriangle } from "lucide-react";
+import { Plus, Eye, Edit, Trash2, X, ShieldAlert, Check, AlertTriangle, Lock } from "lucide-react";
 import { useAppState, Role } from "@/context/StateContext";
+// Adjust this import path to wherever you saved the permissions hook file.
+import { useHasPermission } from "@/lib/permissions";
 
 const PERMISSION_ACTIONS = ["create", "read", "update", "delete", "export"];
+const PERMISSION_MODULES = ["dashboard", "products", "orders", "users", "calendar", "messages", "roles"] as const;
 
 export default function AdminRolesPage() {
   const { roles, addRole, updateRole, deleteRole } = useAppState();
 
+  // ---- Permission checks for THIS page (the "roles" module) ----
+  const canCreateRole = useHasPermission("roles", "create");
+  const canReadRole = useHasPermission("roles", "read");
+  const canUpdateRole = useHasPermission("roles", "update");
+  const canDeleteRole = useHasPermission("roles", "delete");
+
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   // When true, the modal renders as read-only (opened via the View/Eye
-  // button) — all inputs disabled and only a Close action is shown.
+  // button, or because the user lacks update rights) — all inputs disabled
+  // and only a Close action is shown.
   const [isViewOnly, setIsViewOnly] = useState(false);
 
   // Delete confirmation state
@@ -23,20 +33,21 @@ export default function AdminRolesPage() {
   const [name, setName] = useState("");
   const [status, setStatus] = useState<"Active" | "Inactive">("Active");
   const [isAdminPrivileges, setIsAdminPrivileges] = useState(false);
-  const [permissions, setPermissions] = useState<Role["permissions"]>({
+  const [permissions, setPermissions] = useState<Record<string, string[]>>({
     dashboard: ["read"],
     products: ["read"],
     orders: ["read"],
-    customers: ["read"],
+    users: ["read"],
     calendar: ["read"],
+    messages: [],
     roles: [],
-    reports: []
   });
 
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleOpenAdd = () => {
+    if (!canCreateRole) return; // safety net alongside the hidden button
     setEditingId(null);
     setIsViewOnly(false);
     setName("");
@@ -46,42 +57,53 @@ export default function AdminRolesPage() {
       dashboard: ["read"],
       products: ["read"],
       orders: ["read"],
-      customers: ["read"],
+      users: ["read"],
       calendar: ["read"],
+      messages: [],
       roles: [],
-      reports: []
     });
     setError(null);
     setIsOpen(true);
   };
 
-  const handleOpenEdit = (role: Role) => {
-    setEditingId(role.id);
-    setIsViewOnly(false);
-    setName(role.name);
-    setStatus(role.status);
-    setIsAdminPrivileges(role.isAdminPrivileges);
-    setPermissions(role.permissions);
-    setError(null);
-    setIsOpen(true);
+  const getRolePermissions = (role: Role) => {
+    const sourcePermissions = (role.permissions ?? {}) as Record<string, string[]>;
+    return PERMISSION_MODULES.reduce((acc, module) => {
+      acc[module] = sourcePermissions[module] ?? [];
+      return acc;
+    }, {} as Record<string, string[]>);
   };
 
-  // Opens the same modal but locked down for viewing only — used by the
-  // Eye icon in the table actions.
   const handleOpenView = (role: Role) => {
+    if (!canReadRole) return;
     setEditingId(role.id);
     setIsViewOnly(true);
     setName(role.name);
     setStatus(role.status);
     setIsAdminPrivileges(role.isAdminPrivileges);
-    setPermissions(role.permissions);
+    setPermissions(getRolePermissions(role));
     setError(null);
     setIsOpen(true);
   };
 
-  const handlePermissionChange = (module: keyof Role["permissions"], action: string, checked: boolean) => {
-    if (isViewOnly) return;
-    const updatedModulePerms = [...permissions[module]];
+  const handleOpenEdit = (role: Role) => {
+    if (!canUpdateRole) return;
+    setEditingId(role.id);
+    setIsViewOnly(false);
+    setName(role.name);
+    setStatus(role.status);
+    setIsAdminPrivileges(role.isAdminPrivileges);
+    setPermissions(getRolePermissions(role));
+    setError(null);
+    setIsOpen(true);
+  };
+
+  // NOTE: typed as plain `string` (not `keyof Role["permissions"]`) since
+  // Role["permissions"] in StateContext.tsx doesn't have a "messages" key
+  // yet — that's the underlying fix still needed there.
+  const handlePermissionChange = (module: string, action: string, checked: boolean) => {
+    if (isViewOnly || !canUpdateRole) return;
+    const updatedModulePerms = [...(permissions[module] || [])];
     if (checked) {
       if (!updatedModulePerms.includes(action)) {
         updatedModulePerms.push(action);
@@ -99,8 +121,8 @@ export default function AdminRolesPage() {
     });
   };
 
-  const handleSelectAllModule = (module: keyof Role["permissions"], checked: boolean) => {
-    if (isViewOnly) return;
+  const handleSelectAllModule = (module: string, checked: boolean) => {
+    if (isViewOnly || !canUpdateRole) return;
     setPermissions({
       ...permissions,
       [module]: checked ? [...PERMISSION_ACTIONS] : [],
@@ -110,6 +132,12 @@ export default function AdminRolesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isViewOnly) return; // Safety net: view mode never submits.
+
+    // Safety net: block save if user lacks the relevant permission,
+    // even if they somehow got the form into an editable state.
+    if (editingId && !canUpdateRole) return;
+    if (!editingId && !canCreateRole) return;
+
     setError(null);
 
     if (!name.trim()) {
@@ -127,9 +155,9 @@ export default function AdminRolesPage() {
     setIsSubmitting(true);
     try {
       if (editingId) {
-        await updateRole(editingId, payload);
+        await updateRole(editingId, payload as any);
       } else {
-        await addRole(payload);
+        await addRole(payload as any);
       }
       setIsOpen(false);
     } catch (err) {
@@ -142,11 +170,12 @@ export default function AdminRolesPage() {
 
   // Opens the delete confirmation modal instead of deleting immediately.
   const handleRequestDelete = (role: Role) => {
+    if (!canDeleteRole) return;
     setDeleteTarget(role);
   };
 
   const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget || !canDeleteRole) return;
     setIsDeleting(true);
     try {
       await deleteRole(deleteTarget.id);
@@ -158,6 +187,22 @@ export default function AdminRolesPage() {
       setIsDeleting(false);
     }
   };
+
+  // If the user can't even read the roles module, don't render the page contents.
+  if (!canReadRole) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+          <Lock className="w-6 h-6 text-slate-400" />
+        </div>
+        <h2 className="text-sm font-black text-slate-700">You don't have access to this page</h2>
+        <p className="text-xs text-slate-400 max-w-xs">
+          Your role doesn't include permission to view Roles &amp; Permissions. Contact an administrator if you
+          believe this is a mistake.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -174,13 +219,15 @@ export default function AdminRolesPage() {
             <Eye className="w-4 h-4 text-slate-500" />
             <span>View Permissions</span>
           </button>
-          <button
-            onClick={handleOpenAdd}
-            className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-[#2F0538] hover:bg-[#4A1054] text-white font-bold text-xs rounded-xl shadow-md transition h-fit w-fit"
-          >
-            <Plus className="w-4 h-4 text-white" />
-            <span>Add Role</span>
-          </button>
+          {canCreateRole && (
+            <button
+              onClick={handleOpenAdd}
+              className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold text-xs rounded-xl shadow-md transition h-fit w-fit"
+            >
+              <Plus className="w-4 h-4 text-white" />
+              <span>Add Role</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -238,14 +285,16 @@ export default function AdminRolesPage() {
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handleOpenEdit(role)}
-                        className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition"
-                        title="Edit role"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      {!role.isSystem && (
+                      {canUpdateRole && (
+                        <button
+                          onClick={() => handleOpenEdit(role)}
+                          className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition"
+                          title="Edit role"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      )}
+                      {!role.isSystem && canDeleteRole && (
                         <button
                           onClick={() => handleRequestDelete(role)}
                           className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
@@ -359,7 +408,7 @@ export default function AdminRolesPage() {
 
                   <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
                     {/* Permissions list per module */}
-                    {(["products", "orders", "customers", "calendar"] as const).map((module) => {
+                    {PERMISSION_MODULES.map((module) => {
                       const moduleLabel = module.charAt(0).toUpperCase() + module.slice(1);
                       const isAllChecked = PERMISSION_ACTIONS.every(action => permissions[module]?.includes(action));
                       
@@ -416,7 +465,7 @@ export default function AdminRolesPage() {
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="px-5 py-2.5 bg-[#2F0538] hover:bg-[#4A1054] text-white font-bold rounded-xl text-xs shadow-md transition"
+                  className="px-5 py-2.5 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold rounded-xl text-xs shadow-md transition"
                 >
                   Close
                 </button>
@@ -433,7 +482,7 @@ export default function AdminRolesPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-5 py-2.5 bg-[#2F0538] hover:bg-[#4A1054] text-white font-bold rounded-xl text-xs shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="px-5 py-2.5 bg-[#9D5CDB] hover:bg-[#4A1054] text-white font-bold rounded-xl text-xs shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {isSubmitting
                       ? "Saving..."

@@ -90,7 +90,7 @@ export default function CartPage() {
                     <span className="bg-[#F7F1FB] text-[#9D5CDB] px-2 py-0.5 rounded-md border border-[#9D5CDB]/20">
                       Size: {item.selectedSize}
                     </span>
-                    <span className="bg-[#241129]/[0.04] text-[#241129]/60 px-2 py-0.5 rounded-md border border-[#241129]/10">
+                    <span className="bg-[#F7F1FB] text-[#9D5CDB] px-2 py-0.5 rounded-md border border-[#9D5CDB]/20">
                       Flavour: {item.selectedFlavour}
                     </span>
                   </div>
@@ -127,7 +127,7 @@ export default function CartPage() {
                 <div className="text-right">
                   <span className="text-xs text-[#241129]/40 block">Total</span>
                   <span className="font-display text-base font-semibold text-[#241129]">
-                    Rs. {totalAmount.toLocaleString()}
+                    Rs. {(item.product.price * item.quantity).toLocaleString()}
                   </span>
                 </div>
 
@@ -146,9 +146,9 @@ export default function CartPage() {
           {/* Continue shopping link */}
           <Link
             href="/shop"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#9D5CDB] hover:underline pt-2 group"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#241129]/60 hover:text-[#9D5CDB] mb-8 transition"
           >
-            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+            <ArrowLeft className="w-4 h-4" />
             <span>Continue shopping for more cakes</span>
           </Link>
         </div>

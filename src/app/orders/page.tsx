@@ -114,7 +114,7 @@ function MiniTracker({ status }: { status: string }) {
 
   if (key === "delivered" || key === "completed") {
     return (
-      <div className="flex items-center gap-1.5 rounded-lg bg-[#2F0538] px-3 py-2 text-xs font-bold text-white">
+      <div className="flex items-center gap-1.5 rounded-lg bg-[#4A1054] px-3 py-2 text-xs font-bold text-white">
         <CheckCircle2 className="w-3.5 h-3.5" />
         Delivered — order complete
       </div>
@@ -141,7 +141,7 @@ function MiniTracker({ status }: { status: string }) {
             {!isLast && (
               <span
                 className={`h-0.5 flex-1 mx-1 rounded-full transition-colors ${
-                  idx < activeIdx ? STEP_LINE_CLASSES[step.name] : "bg-[#9D5CDB]/[0.15]"
+                  idx < activeIdx ? STEP_LINE_CLASSES[step.name] : "bg-[#9D5CDB]"
                 }`}
               />
             )}
@@ -215,7 +215,7 @@ function OrderCard({ order, onCancel }: { order: any; onCancel: (order: any) => 
       <div className="flex items-center gap-2 border-t border-[#9D5CDB]/10 p-4 bg-[#F7F1FB]/60">
         <Link
           href={getOrderViewHref(order)}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#F7F1FB] hover:bg-[#2F0538] hover:text-white text-[#4A1054] text-xs font-bold rounded-lg transition-colors duration-300"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#F7F1FB] hover:bg-[#4A1054] hover:text-white text-[#4A1054] text-xs font-bold rounded-lg transition-colors duration-300"
         >
           View Details
           <ArrowRight className="w-3.5 h-3.5" />
@@ -223,7 +223,7 @@ function OrderCard({ order, onCancel }: { order: any; onCancel: (order: any) => 
         {isCancellable && (
           <button
             onClick={() => onCancel(order)}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-[#241129]/12 text-[#241129]/50 text-xs font-bold hover:bg-[#241129]/[0.05] transition-colors duration-300"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-red-200 bg-red-50 text-red-500 text-xs font-bold hover:bg-red-500 hover:border-red-500 hover:text-white active:scale-95 transition-all duration-300"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Cancel</span>
@@ -319,6 +319,20 @@ export default function OrdersPage() {
         .status-filter-row::-webkit-scrollbar-track {
           background: transparent;
         }
+
+        @keyframes cancelModalIn {
+          from {
+            opacity: 0;
+            transform: translateY(12px) scale(0.97);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        .cancel-modal-in {
+          animation: cancelModalIn 0.25s ease-out;
+        }
       `}</style>
 
       <Header />
@@ -350,7 +364,7 @@ export default function OrdersPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by order ID..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#241129]/12 text-sm text-[#241129] placeholder:text-[#241129]/35 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB] focus:border-transparent transition"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#9D5CDB]/15 bg-[#F7F1FB]/60 text-sm text-[#241129] placeholder:text-[#241129]/35 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/25 focus:border-[#9D5CDB] transition-all duration-200"
               />
             </div>
             <div className="status-filter-row flex flex-nowrap items-center gap-1 bg-[#F7F1FB] p-1 rounded-xl border border-[#9D5CDB]/12 self-start overflow-x-auto max-w-full">
@@ -360,7 +374,7 @@ export default function OrdersPage() {
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
-                    className={`inline-flex items-center justify-center px-2.5 py-1.5 rounded-lg text-[11px] font-bold border whitespace-nowrap shrink-0 transition-all duration-200 ${active ? 'border-[#9D5CDB] bg-[#9D5CDB] text-white' : 'border-transparent bg-transparent text-[#9D5CDB]'} hover:bg-[#2F0538] hover:border-[#2F0538] hover:text-white`}
+                    className={`inline-flex items-center justify-center px-2.5 py-1.5 rounded-lg text-[11px] font-bold border whitespace-nowrap shrink-0 transition-all duration-200 ${active ? 'border-[#9D5CDB] bg-[#9D5CDB] text-white' : 'border-transparent bg-transparent text-[#9D5CDB]'} hover:bg-[#4A1054] hover:border-[#4A1054] hover:text-white`}
                   >
                     {status}
                   </button>
@@ -399,38 +413,54 @@ export default function OrdersPage() {
           onClick={() => !cancelling && setCancelOrder(null)}
         >
           <div
-            className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 text-center"
+            className="cancel-modal-in relative w-full max-w-sm bg-white rounded-3xl shadow-2xl shadow-red-900/10 overflow-hidden text-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-14 h-14 rounded-2xl bg-[#F7F1FB] flex items-center justify-center mx-auto mb-4">
-              <AlertCircle className="w-6 h-6 text-[#4A1054]" />
-            </div>
-            <h3 className="font-display text-lg font-semibold text-[#241129] mb-2">Cancel this order?</h3>
-            <p className="text-sm text-[#241129]/50 mb-1">This will mark your order as cancelled.</p>
-            <p className="text-xs text-[#241129]/50 font-semibold mb-6">This action cannot be undone.</p>
+            {/* Decorative red top accent */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-red-400 via-red-500 to-red-400" />
 
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setCancelOrder(null)}
-                disabled={cancelling}
-                className="flex-1 px-4 py-3 rounded-xl border border-[#241129]/12 text-[#241129]/70 text-sm font-bold hover:bg-[#F7F1FB] transition disabled:opacity-50"
-              >
-                Keep Order
-              </button>
-              <button
-                onClick={handleConfirmCancel}
-                disabled={cancelling}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#2F0538] hover:bg-[#4A1054] text-white text-sm font-bold transition disabled:opacity-60"
-              >
-                {cancelling ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Cancelling…
-                  </>
-                ) : (
-                  "Yes, Cancel Order"
-                )}
-              </button>
+            <div className="p-7 sm:p-8">
+              <div className="relative w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-5 ring-8 ring-red-50/50">
+                <div className="absolute inset-0 rounded-2xl bg-red-400/10 animate-ping" />
+                <AlertCircle className="relative w-7 h-7 text-red-500" strokeWidth={2.2} />
+              </div>
+
+              <h3 className="font-display text-xl font-semibold text-[#241129] mb-2">
+                Cancel this order?
+              </h3>
+              <p className="text-sm text-[#241129]/55 leading-relaxed mb-1">
+                This will mark order <span className="font-mono font-semibold text-[#241129]/70">#{cancelOrder.id}</span> as cancelled.
+              </p>
+              <p className="text-xs text-red-500/80 font-semibold mb-7">
+                This action cannot be undone.
+              </p>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setCancelOrder(null)}
+                  disabled={cancelling}
+                  className="flex-1 px-4 py-3 rounded-xl border border-[#241129]/12 text-[#241129]/70 text-sm font-bold hover:bg-[#F7F1FB] transition disabled:opacity-50"
+                >
+                  Keep Order
+                </button>
+                <button
+                  onClick={handleConfirmCancel}
+                  disabled={cancelling}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold shadow-lg shadow-red-500/25 transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
+                >
+                  {cancelling ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Cancelling…
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Yes, Cancel Order
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

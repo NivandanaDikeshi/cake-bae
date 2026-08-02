@@ -109,7 +109,7 @@ export const Header: React.FC = () => {
             {currentUser && isStaff && (
               <Link
                 href="/admin/dashboard"
-                className="text-sm font-bold text-[#9D5CDB] hover:text-[#2F0538] bg-[#F7F1FB] hover:bg-[#9D5CDB]/15 border border-[#9D5CDB]/20 px-3 py-1.5 rounded-lg transition"
+                className="text-sm font-bold text-[#9D5CDB] hover:text-[#4A1054] bg-[#F7F1FB] hover:bg-[#9D5CDB]/15 border border-[#9D5CDB]/20 px-3 py-1.5 rounded-lg transition"
               >
                 Admin Panel
               </Link>
@@ -164,7 +164,7 @@ export const Header: React.FC = () => {
                 </Link>
                 <Link
                   href="/register"
-                  className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#9D5CDB] hover:bg-[#4A1054] px-4 py-2 rounded-lg transition shadow-sm"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#9D5CDB] hover:bg-[#4A105] px-4 py-2 rounded-lg transition shadow-sm"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>Register</span>

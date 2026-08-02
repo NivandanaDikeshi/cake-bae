@@ -1,8 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, Edit3, ShoppingBag, Search, CreditCard, Clock, Check, X, ShieldAlert } from "lucide-react";
+import { Eye, Edit3, ShoppingBag, Search, CreditCard, Clock, Check, X, ShieldAlert, RotateCcw } from "lucide-react";
 import { useAppState, Order } from "@/context/StateContext";
+
+// Maps each status to the status directly before it, so we know what
+// "undo" should revert to. Statuses not listed here have no previous step.
+const PREVIOUS_STATUS: Partial<Record<Order["status"], Order["status"]>> = {
+  "Confirmed": "Pending",
+  "Baking/Decorating": "Confirmed",
+  "Ready for Dispatch": "Baking/Decorating",
+  "Delivered": "Ready for Dispatch",
+};
 
 export default function AdminOrdersPage() {
   const { orders, updateOrderStatus } = useAppState();
@@ -72,6 +81,25 @@ export default function AdminOrdersPage() {
     }
   };
 
+  // Reverts an order to the status immediately before its current one.
+  // Also clears paymentStatus back to Unpaid if we're undoing out of
+  // Delivered, since that's the step that auto-marked it Paid.
+  const handleUndoStatus = (id: string, currentStatus: Order["status"]) => {
+    const previous = PREVIOUS_STATUS[currentStatus];
+    if (!previous) return;
+
+    const paymentStatus = currentStatus === "Delivered" ? ("Unpaid" as const) : undefined;
+    updateOrderStatus(id, previous, paymentStatus);
+
+    if (selectedOrder && selectedOrder.id === id) {
+      setSelectedOrder({
+        ...selectedOrder,
+        status: previous,
+        ...(paymentStatus ? { paymentStatus } : {})
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Title */}
@@ -102,7 +130,7 @@ export default function AdminOrdersPage() {
               onClick={() => setSelectedStatus(status)}
               className={`px-3 py-2 rounded-lg text-xs font-bold border transition ${
                 selectedStatus === status
-                  ? "bg-[#2F0538] border-[#2F0538] text-white shadow-xs"
+                  ? "bg-[#4A1054] border-[#4A1054] text-white shadow-xs"
                   : "bg-white border-purple-50 text-slate-600 hover:bg-purple-50"
               }`}
             >
@@ -335,6 +363,19 @@ export default function AdminOrdersPage() {
                     className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-xs shadow-xs transition"
                   >
                     Mark Delivered & Completed
+                  </button>
+                )}
+
+                {/* Undo button — reverts to the previous status in the flow.
+                    Hidden when there's no previous step (Pending) or when
+                    the order is Completed/Cancelled, since those are terminal. */}
+                {PREVIOUS_STATUS[selectedOrder.status] && (
+                  <button
+                    onClick={() => handleUndoStatus(selectedOrder.id, selectedOrder.status)}
+                    className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl text-xs transition flex items-center gap-1.5"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Undo (Back to {PREVIOUS_STATUS[selectedOrder.status]})
                   </button>
                 )}
 

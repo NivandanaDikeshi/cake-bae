@@ -27,16 +27,6 @@ import {
   Target,
 } from "lucide-react";
 
-// ── Brand palette (Cake Bae) — used identically on every page ──────────
-// Aubergine #2F0538  — deep bg / primary dark surface
-// Plum      #4A1054  — gradient partner / hover depth
-// Orchid    #9D5CDB  — primary accent, buttons, active states
-// Lavender  #F7F1FB  — light section bg
-// Ink       #241129  — body text color
-// Gold      #F0B429  — reserved for one meaning only: "Ready for Dispatch"
-// Fonts: Fraunces (display) + Inter (body) — used site-wide, see BRAND_FONTS.
-// ──────────────────────────────────────────────────────────────────────
-
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
@@ -190,7 +180,7 @@ export default function AboutPage() {
                 href="https://www.facebook.com/share/1KGEzKfUu9/?mibextid=wwXIfr"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-3 bg-[#2F0538] hover:bg-[#4A1054] text-white text-sm font-bold rounded-xl transition-colors shadow-md"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-[#9D5CDB] hover:bg-[#4A1054] text-white text-sm font-bold rounded-xl transition-colors shadow-md"
               >
                 <MessageCircle className="w-4 h-4" />
                 <span>Message Us</span>

@@ -183,7 +183,7 @@ export default function ProductDetailsPage() {
             {/* Size Selector */}
             {product.sizes.length > 0 && (
               <div className="space-y-2">
-                <label className="text-sm font-bold text-[#2F0538]">Select Cake Size / Portions</label>
+                <label className="text-sm font-bold text-[#9D5CDB]">Select Cake Size / Portions</label>
                 <div className="flex flex-wrap gap-2">
                   {product.sizes.map((size) => (
                     <button
@@ -218,7 +218,7 @@ export default function ProductDetailsPage() {
                       onClick={() => setSelectedFlavour(flavour)}
                       className={`px-4 py-2.5 text-xs font-bold rounded-xl border transition ${
                         selectedFlavour === flavour
-                          ? "bg-[#2F0538] border-[#2F0538] text-white shadow-sm"
+                          ? "bg-[#9D5CDB] border-[#9D5CDB] text-white shadow-sm"
                           : "bg-white border-[#9D5CDB]/15 text-[#241129] hover:bg-[#F7F1FB]/50"
                       }`}
                     >

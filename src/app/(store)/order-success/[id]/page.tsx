@@ -51,6 +51,52 @@ function resolveItemImage(item: any): string | undefined {
   return found;
 }
 
+// Builds a detailed, human-readable WhatsApp message summarizing the order:
+// item list with quantity/size/flavour, totals, and delivery slot — so the
+// bakery team can confirm the order without needing to look anything up.
+function buildWhatsAppMessage(order: Order): string {
+  const itemLines = order.items
+    .map((item) => {
+      const variant = [item.selectedSize, item.selectedFlavour].filter(Boolean).join(" · ");
+      const lineTotal = (item.product.price * item.quantity).toLocaleString();
+      let line = `- ${item.quantity}x ${item.product.name}`;
+      if (variant) line += ` (${variant})`;
+      line += ` — Rs. ${lineTotal}`;
+      if (item.customMessage) line += `\n  Message: "${item.customMessage}"`;
+      return line;
+    })
+    .join("\n");
+
+  const deliveryTimeLabel =
+    order.deliveryTime === "10:00"
+      ? "Morning Slot (10am - 12pm)"
+      : order.deliveryTime === "14:00"
+      ? "Afternoon Slot (2pm - 4pm)"
+      : "Evening Slot (6pm - 8pm)";
+
+  return [
+    `Hi Cake Bae, I just placed an order on the website. Could you confirm it?`,
+    ``,
+    `*Order ID:* ${order.id}`,
+    `*Name:* ${order.customerName}`,
+    `*Phone:* ${order.customerPhone}`,
+    ``,
+    `*Items:*`,
+    itemLines,
+    ``,
+    `*Items Total:* Rs. ${(order.totalPrice - order.deliveryFee).toLocaleString()}`,
+    `*Delivery Fee:* Rs. ${order.deliveryFee.toLocaleString()}`,
+    `*Total:* Rs. ${order.totalPrice.toLocaleString()}`,
+    ``,
+    `*Delivery Address:* ${order.deliveryAddress} (${order.deliveryRegion})`,
+    `*Date:* ${order.deliveryDate}`,
+    `*Time Slot:* ${deliveryTimeLabel}`,
+    `*Payment:* COD (${order.paymentStatus})`,
+    ``,
+    `Thank you!`,
+  ].join("\n");
+}
+
 // Small reusable product thumbnail with graceful fallback.
 // Uses a plain <img> so it works regardless of next.config.js domain whitelisting.
 function ProductThumb({ src, alt }: { src?: string; alt: string }) {
@@ -121,7 +167,7 @@ export default function OrderSuccessPage() {
 
   const activeStepIdx = getStepIndex(order.status);
 
-  const whatsAppMessage = `Hi Cake Bae, I placed an order on the website. My Order ID is ${order.id}. Could you confirm my order? Thank you!`;
+  const whatsAppMessage = buildWhatsAppMessage(order);
   const whatsAppLink = `https://wa.me/94771234567?text=${encodeURIComponent(whatsAppMessage)}`;
 
   return (
@@ -295,18 +341,18 @@ export default function OrderSuccessPage() {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <span className="font-bold text-[#241129] text-xs leading-snug">
+                        <span className="font-bold text-[#9D5CDB text-xs leading-snug">
                           {item.quantity}× {item.product.name}
                         </span>
-                        <span className="font-bold text-[#241129] text-xs whitespace-nowrap">
+                        <span className="font-bold text-[#9D5CDB] text-xs whitespace-nowrap">
                           Rs. {(item.product.price * item.quantity).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-[10px] text-[#241129]/40 mt-0.5">
+                      <p className="text-[10px] text-[#9D5CDB] mt-0.5">
                         {item.selectedSize} · {item.selectedFlavour}
                       </p>
                       {item.customMessage && (
-                        <p className="text-[10px] text-[#4A1054] italic mt-0.5 truncate">
+                        <p className="text-[10px] text-[#9D5CDB] italic mt-0.5 truncate">
                           "{item.customMessage}"
                         </p>
                       )}
@@ -344,7 +390,7 @@ export default function OrderSuccessPage() {
       <div className="text-center pt-2">
         <Link
           href="/shop"
-          className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-[#F7F1FB] hover:bg-[#2F0538] hover:text-white text-[#9D5CDB] text-xs font-bold rounded-lg transition-colors duration-300"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#241129]/60 hover:text-[#9D5CDB] mb-8 transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Online Shop</span>
