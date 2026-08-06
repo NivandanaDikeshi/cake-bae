@@ -316,7 +316,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading || !!successMessage}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#9D5CDB] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#5B21B6] py-3.5 sm:py-4 text-white font-extrabold text-sm tracking-wide shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#9D5CDB] to-[#4A1054] hover:from-[#9D5CDB] hover:to-[#2F0538] py-3.5 sm:py-4 text-white font-extrabold text-sm tracking-wide shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? "Creating Account..." : successMessage ? "Redirecting..." : "Create Account"}
             {!loading && !successMessage && <ArrowRight className="w-4.5 h-4.5" />}
