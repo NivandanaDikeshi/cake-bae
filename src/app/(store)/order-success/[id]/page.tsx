@@ -131,7 +131,7 @@ function ProductThumb({ src, alt }: { src?: string; alt: string }) {
 
 export default function OrderSuccessPage() {
   const { id } = useParams() as { id: string };
-  const { orders } = useAppState();
+  const { orders, currentUser } = useAppState();
   const [order, setOrder] = useState<Order | null>(null);
 
   useEffect(() => {
@@ -227,7 +227,11 @@ export default function OrderSuccessPage() {
           Live Order Tracking
         </h3>
 
-        {order.status === "Cancelled" ? (
+        {!currentUser ? (
+          <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2">
+            ⚠️ Order tracking is not available because you are not logged in.
+          </div>
+        ) : order.status === "Cancelled" ? (
           <div className="p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl text-sm font-bold">
             ❌ This order has been cancelled. If you have questions, please reach out to us.
           </div>

@@ -121,7 +121,7 @@ export default function AdminUsersPage() {
       setIsOpen(false);
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || "Failed to save user. Please check if email is valid and not already registered.");
+      setError("Failed to save user. Please check if email is valid and not already registered.");
     }
   };
 
@@ -147,7 +147,7 @@ export default function AdminUsersPage() {
       setDeleteTarget(null);
     } catch (err: any) {
       console.error(err);
-      setDeleteError(err?.message || "Failed to delete user. Please try again.");
+      setDeleteError("Failed to delete user. Please try again.");
     } finally {
       setIsDeleting(false);
     }

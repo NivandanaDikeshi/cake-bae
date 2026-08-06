@@ -190,7 +190,7 @@ export default function ProfilePage() {
       setTimeout(() => setSavedMessage(false), 2500);
     } catch (err: any) {
       console.error("Failed to update profile:", err);
-      setErrorMessage(err?.message || "Something went wrong while saving. Please try again.");
+      setErrorMessage("Something went wrong while saving your profile. Please try again.");
     } finally {
       setIsSaving(false);
     }

@@ -33,8 +33,19 @@ export default function ProductDetailsPage() {
       if (found.flavours.length > 0) {
         setSelectedFlavour(found.flavours[0]);
       }
+
+      // Force scroll to top when product loads to prevent bottom-to-top layout jump
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
     }
   }, [id, products]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, []);
 
   // Automatically recalculates whenever the product, selected size, or
   // selected flavour changes. Falls back to the base price / no add-on

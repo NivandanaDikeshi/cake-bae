@@ -49,16 +49,18 @@ export default function AdminOrdersPage() {
     return order.customerName?.trim() || order.customerEmail?.trim() || "Guest Customer";
   };
 
-  // Filter orders
-  const filteredOrders = orders.filter((order) => {
-    const customerDisplay = getCustomerDisplayName(order);
-    const matchesSearch =
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customerDisplay.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (order.customerPhone || "").includes(searchTerm);
-    const matchesStatus = selectedStatus === "All" || order.status === selectedStatus;
-    return matchesSearch && matchesStatus;
-  });
+  // Filter and sort orders (recent first)
+  const filteredOrders = orders
+    .filter((order) => {
+      const customerDisplay = getCustomerDisplayName(order);
+      const matchesSearch =
+        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customerDisplay.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (order.customerPhone || "").includes(searchTerm);
+      const matchesStatus = selectedStatus === "All" || order.status === selectedStatus;
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const getStatusBadgeClass = (status: Order["status"]) => {
     switch (status) {
