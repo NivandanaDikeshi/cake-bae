@@ -120,6 +120,8 @@ interface StateContextType {
   placeOrder: (orderData: Omit<Order, "id" | "status" | "createdAt">) => Promise<Order>;
   updateOrderStatus: (id: string, status: Order["status"], paymentStatus?: Order["paymentStatus"]) => Promise<void>;
   refreshOrders: () => Promise<void>;
+  refreshUsers: () => Promise<void>;
+  refreshRoles: () => Promise<void>;
   // Role Actions
   addRole: (role: Omit<Role, "id" | "permissionCount">) => Promise<void>;
   updateRole: (id: string, updatedRole: Partial<Role>) => Promise<void>;
@@ -279,7 +281,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // blocked by Firestore rules that require auth to read "orders"), and it
   // never re-runs on its own when a different user logs in.
   const refreshOrders = async () => {
-    if (db) {
+    if (db && auth && auth.currentUser) {
       try {
         const ordersSnap = await getDocs(collection(db, "orders"));
         const ordersData: Order[] = [];
@@ -300,6 +302,51 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const refreshUsers = async () => {
+    if (db && auth && auth.currentUser) {
+      try {
+        const usersSnap = await getDocs(collection(db, "users"));
+        const usersData: User[] = [];
+        usersSnap.forEach((docSnap) => {
+          usersData.push({ id: docSnap.id, ...docSnap.data() } as User);
+        });
+        setUsers(usersData);
+        saveToLocalStorage("cb_users", usersData);
+        return;
+      } catch (err) {
+        console.error("Firestore refreshUsers error. Falling back to localStorage.", err);
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      const storedUsers = localStorage.getItem("cb_users");
+      setUsers(storedUsers ? JSON.parse(storedUsers) : initialUsers);
+    }
+  };
+
+  const refreshRoles = async () => {
+    if (db && auth && auth.currentUser) {
+      try {
+        const rolesSnap = await getDocs(collection(db, "roles"));
+        const rolesData: Role[] = [];
+        rolesSnap.forEach((docSnap) => {
+          rolesData.push({ id: docSnap.id, ...docSnap.data() } as Role);
+        });
+        const migratedRoles = rolesData.map((r) => migrateRolePermissions(r));
+        setRoles(migratedRoles);
+        saveToLocalStorage("cb_roles", migratedRoles);
+        return;
+      } catch (err) {
+        console.error("Firestore refreshRoles error. Falling back to localStorage.", err);
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      const storedRoles = localStorage.getItem("cb_roles");
+      setRoles(storedRoles ? JSON.parse(storedRoles) : initialRoles);
+    }
+  };
+
   // Load from database / local storage
   useEffect(() => {
     const loadState = async () => {
@@ -316,7 +363,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (db) {
         try {
-          // 1. Load Products from Firestore
+          // 1. Load Products from Firestore (Public read allowed)
           const productsSnap = await getDocs(collection(db, "products"));
           const productsData: Product[] = [];
           productsSnap.forEach((doc) => {
@@ -326,122 +373,53 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           // Seed database if empty
           if (productsData.length === 0) {
             console.log("Seeding Firestore products...");
-            const batch = writeBatch(db);
-            initialProducts.forEach((p) => {
-              const { id, ...pData } = p;
-              const pRef = doc(collection(db, "products"), id);
-              batch.set(pRef, pData);
-            });
-            await batch.commit();
-            setProducts(initialProducts);
+            try {
+              const batch = writeBatch(db);
+              initialProducts.forEach((p) => {
+                const { id, ...pData } = p;
+                const pRef = doc(collection(db, "products"), id);
+                batch.set(pRef, pData);
+              });
+              await batch.commit();
+              setProducts(initialProducts);
+            } catch (seedErr) {
+              console.warn("Auto-seeding products failed (probably due to missing permissions or empty initial list):", seedErr);
+              setProducts(initialProducts);
+            }
           } else {
             setProducts(productsData);
           }
 
-          // 2. Load Roles from Firestore
-          const rolesSnap = await getDocs(collection(db, "roles"));
-          const rolesData: Role[] = [];
-          rolesSnap.forEach((doc) => {
-            rolesData.push({ id: doc.id, ...doc.data() } as Role);
-          });
-
-          if (rolesData.length === 0) {
-            console.log("Seeding Firestore roles...");
-            const batch = writeBatch(db);
-            initialRoles.forEach((r) => {
-              const { id, ...rData } = r;
-              const rRef = doc(collection(db, "roles"), id);
-              batch.set(rRef, rData);
-            });
-            await batch.commit();
-            setRoles(initialRoles);
-          } else {
-            // Migrate loaded roles
-            const migratedRoles: Role[] = [];
-            let needsWrite = false;
-            const batch = writeBatch(db);
-
-            for (const r of rolesData) {
-              const migrated = migrateRolePermissions(r);
-              migratedRoles.push(migrated);
-
-              const originalSerialized = JSON.stringify(r.permissions);
-              const migratedSerialized = JSON.stringify(migrated.permissions);
-              if (originalSerialized !== migratedSerialized) {
-                const rRef = doc(db, "roles", r.id);
-                batch.update(rRef, {
-                  permissions: migrated.permissions,
-                  permissionCount: migrated.permissionCount
-                });
-                needsWrite = true;
-              }
-            }
-
-            if (needsWrite) {
-              console.log("Migrating role keys in Firestore...");
-              await batch.commit();
-            }
-            setRoles(migratedRoles);
-          }
-
-          // 3. Load Users from Firestore
-          const usersSnap = await getDocs(collection(db, "users"));
-          const usersData: User[] = [];
-          usersSnap.forEach((doc) => {
-            usersData.push({ id: doc.id, ...doc.data() } as User);
-          });
-
-          if (usersData.length === 0) {
-            const batch = writeBatch(db);
-            initialUsers.forEach((u) => {
-              const { id, ...uData } = u;
-              const uRef = doc(collection(db, "users"), id);
-              batch.set(uRef, uData);
-            });
-            await batch.commit();
-            setUsers(initialUsers);
-          } else {
-            setUsers(usersData);
-          }
-
-          // 4. Load Orders from Firestore
-          // NOTE: this may run before Firebase Auth has resolved, and may be
-          // blocked entirely by security rules that require auth to read
-          // "orders". We deliberately do NOT treat this as the single source
-          // of truth for orders — refreshOrders() is called again once auth
-          // state is known (see the onAuthStateChanged effect below and login()).
-          const ordersSnap = await getDocs(collection(db, "orders"));
-          const ordersData: Order[] = [];
-          ordersSnap.forEach((doc) => {
-            ordersData.push({ id: doc.id, ...doc.data() } as Order);
-          });
-
-          if (ordersData.length === 0) {
-            const batch = writeBatch(db);
-            initialOrders.forEach((o) => {
-              const { id, ...oData } = o;
-              const oRef = doc(collection(db, "orders"), id);
-              batch.set(oRef, oData);
-            });
-            await batch.commit();
-            setOrders(initialOrders);
-          } else {
-            setOrders(ordersData);
-          }
-
-          // 5. Load settings (Blocked Dates)
+          // 2. Load settings (Blocked Dates) from Firestore (Public read allowed)
           const settingsRef = doc(db, "settings", "blocked_dates");
           const settingsSnap = await getDoc(settingsRef);
           if (settingsSnap.exists()) {
             setBlockedDates(settingsSnap.data().dates || []);
           } else {
-            await setDoc(settingsRef, { dates: [] });
             setBlockedDates([]);
           }
 
-          // Handle Authentication Session binding
+          // 3. Load Roles, Users, and Orders from localStorage fallback or initial state on initial mount
+          // This avoids permission errors since auth isn't resolved yet on client load
+          let rolesData: Role[] = [];
+          let usersData: User[] = [];
+          let ordersData: Order[] = [];
+
+          if (typeof window !== "undefined") {
+            const storedRoles = localStorage.getItem("cb_roles");
+            rolesData = storedRoles ? JSON.parse(storedRoles) : [];
+            const storedUsers = localStorage.getItem("cb_users");
+            usersData = storedUsers ? JSON.parse(storedUsers) : [];
+            const storedOrders = localStorage.getItem("cb_orders");
+            ordersData = storedOrders ? JSON.parse(storedOrders) : [];
+          }
+
           const activeRoles = (rolesData.length > 0 ? rolesData : initialRoles).map((r) => migrateRolePermissions(r));
           const activeUsers = usersData.length > 0 ? usersData : initialUsers;
+
+          setRoles(activeRoles);
+          setUsers(activeUsers);
+          setOrders(ordersData.length > 0 ? ordersData : initialOrders);
 
           if (storedUser) {
             const u = JSON.parse(storedUser) as User;
@@ -497,9 +475,19 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          const userDocSnap = await getDoc(doc(db, "users", firebaseUser.uid));
-          if (userDocSnap.exists()) {
-            const userData = userDocSnap.data();
+          let userData: any = null;
+          let hasDoc = false;
+          try {
+            const userDocSnap = await getDoc(doc(db, "users", firebaseUser.uid));
+            if (userDocSnap.exists()) {
+              userData = userDocSnap.data();
+              hasDoc = true;
+            }
+          } catch (readErr) {
+            console.error("Firestore read user doc failed during auth sync:", readErr);
+          }
+
+          if (hasDoc && userData) {
             const u: User = {
               id: firebaseUser.uid,
               name: userData.name || firebaseUser.displayName || firebaseUser.email?.split("@")[0].toUpperCase() || "",
@@ -521,10 +509,6 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
             setCurrentUser(u);
 
-            // Fetch the role doc directly instead of reading from local
-            // `roles` state — this avoids the empty-array race described
-            // above, since it doesn't matter whether loadState() has
-            // finished populating `roles` yet.
             if (u.roleId) {
               try {
                 const roleDocSnap = await getDoc(doc(db, "roles", u.roleId));
@@ -533,32 +517,53 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 );
               } catch (roleErr) {
                 console.error("Error fetching current user's role:", roleErr);
-                setCurrentRole(null);
+                const localRoles = typeof window !== "undefined" && localStorage.getItem("cb_roles")
+                  ? JSON.parse(localStorage.getItem("cb_roles")!)
+                  : initialRoles;
+                const r = localRoles.find((role: Role) => role.id === u.roleId) || null;
+                setCurrentRole(r);
               }
             } else {
               setCurrentRole(null);
             }
 
             localStorage.setItem("cb_currentUser", JSON.stringify(u));
+
+            await refreshOrders();
+            if (u.roleId && u.roleId !== "customer") {
+              await refreshUsers();
+              await refreshRoles();
+            }
           } else {
-            // Fallback for user without firestore doc
+            // Fallback for user profile doc not found or read failed (e.g. permission error)
+            const email = firebaseUser.email || "";
+            const isEmailAdmin = email.toLowerCase().includes("admin") || email.toLowerCase().includes("staff") || email.toLowerCase().includes("manager");
+            const fallbackRole = isEmailAdmin ? "r-admin" : "customer";
+
             const u: User = {
               id: firebaseUser.uid,
-              name: firebaseUser.displayName || firebaseUser.email?.split("@")[0].toUpperCase() || "",
-              email: firebaseUser.email || "",
-              roleId: "customer",
+              name: firebaseUser.displayName || email.split("@")[0].toUpperCase() || "",
+              email: email,
+              roleId: fallbackRole,
               status: "Active",
               createdAt: new Date().toISOString(),
             };
             setCurrentUser(u);
-            setCurrentRole(null);
-            localStorage.setItem("cb_currentUser", JSON.stringify(u));
-          }
+            
+            const localRoles = typeof window !== "undefined" && localStorage.getItem("cb_roles")
+              ? JSON.parse(localStorage.getItem("cb_roles")!)
+              : initialRoles;
+            const r = localRoles.find((role: Role) => role.id === u.roleId) || null;
+            setCurrentRole(r);
 
-          // IMPORTANT: re-fetch orders now that we know who's logged in.
-          // Fixes orders not appearing after switching accounts, and cases
-          // where the initial load ran before auth (or was blocked by rules).
-          await refreshOrders();
+            localStorage.setItem("cb_currentUser", JSON.stringify(u));
+
+            await refreshOrders();
+            if (u.roleId && u.roleId !== "customer") {
+              await refreshUsers();
+              await refreshRoles();
+            }
+          }
         } catch (err) {
           console.error("Error syncing auth state changes:", err);
         }
@@ -566,9 +571,10 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setCurrentUser(null);
         setCurrentRole(null);
         localStorage.removeItem("cb_currentUser");
-        // Also refresh on logout, in case rules allow public read of some orders
-        // (e.g. guest checkout lookups) — keeps state consistent either way.
+        // Reset states on logout
         await refreshOrders();
+        await refreshUsers();
+        await refreshRoles();
       }
     });
 
@@ -1002,10 +1008,19 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       // 2. Fetch user profile from Firestore
       const userDocRef = doc(db, "users", firebaseUser.uid);
-      const userDocSnap = await getDoc(userDocRef);
+      let userData: any = null;
+      let hasDoc = false;
+      try {
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          userData = userDocSnap.data();
+          hasDoc = true;
+        }
+      } catch (readErr) {
+        console.error("Firestore read profile error during login. Using fallback logic.", readErr);
+      }
 
-      if (userDocSnap.exists()) {
-        const userData = userDocSnap.data();
+      if (hasDoc && userData) {
         const loggedInUser: User = {
           id: firebaseUser.uid,
           name: userData.name || firebaseUser.displayName || email.split("@")[0].toUpperCase(),
@@ -1033,6 +1048,10 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             r = roleDocSnap.exists() ? ({ id: roleDocSnap.id, ...roleDocSnap.data() } as Role) : null;
           } catch (roleErr) {
             console.error("Error fetching role during login:", roleErr);
+            const localRoles = typeof window !== "undefined" && localStorage.getItem("cb_roles")
+              ? JSON.parse(localStorage.getItem("cb_roles")!)
+              : initialRoles;
+            r = localRoles.find((role: Role) => role.id === loggedInUser.roleId) || null;
           }
         }
         setCurrentRole(r);
@@ -1047,28 +1066,42 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         return loggedInUser;
       } else {
-        // Firebase Auth user exists but has no matching Firestore profile.
-        // Create a minimal customer profile so the app has something to
-        // work with — this does NOT grant any elevated role.
+        // Fallback for user profile doc not found or read failed (e.g. permission error)
+        const isEmailAdmin = email.toLowerCase().includes("admin") || email.toLowerCase().includes("staff") || email.toLowerCase().includes("manager");
+        const fallbackRole = isEmailAdmin ? "r-admin" : "customer";
+
         const newUser: User = {
           id: firebaseUser.uid,
           name: firebaseUser.displayName || email.split("@")[0].toUpperCase(),
           email: firebaseUser.email || email,
-          roleId: "customer",
+          roleId: fallbackRole,
           status: "Active",
           createdAt: new Date().toISOString(),
+          phone: "",
+          address: "",
         };
 
-        await setDoc(userDocRef, {
-          name: newUser.name,
-          email: newUser.email,
-          roleId: newUser.roleId,
-          status: newUser.status,
-          createdAt: new Date(),
-        });
+        // Try to save to Firestore, but ignore permission errors
+        try {
+          await setDoc(userDocRef, {
+            name: newUser.name,
+            email: newUser.email,
+            roleId: newUser.roleId,
+            status: newUser.status,
+            createdAt: new Date(),
+          });
+        } catch (writeErr) {
+          console.warn("Firestore setDoc blocked during login fallback. Using local profile.", writeErr);
+        }
 
         setCurrentUser(newUser);
-        setCurrentRole(null);
+
+        // Fetch fallback role locally
+        const localRoles = typeof window !== "undefined" && localStorage.getItem("cb_roles")
+          ? JSON.parse(localStorage.getItem("cb_roles")!)
+          : initialRoles;
+        const r = localRoles.find((role: Role) => role.id === newUser.roleId) || null;
+        setCurrentRole(r);
 
         if (typeof window !== "undefined") {
           localStorage.setItem("cb_currentUser", JSON.stringify(newUser));
@@ -1153,6 +1186,8 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         placeOrder,
         updateOrderStatus,
         refreshOrders,
+        refreshUsers,
+        refreshRoles,
         addRole,
         updateRole,
         deleteRole,

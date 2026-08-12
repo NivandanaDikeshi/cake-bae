@@ -36,5 +36,11 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow create, write: if true;
     }
+
+    // 6. Contact Messages: Anyone can create, staff/admin can read/update
+    match /contactMessages/{messageId} {
+      allow create: if true;
+      allow read, update, delete: if isAuthenticated();
+    }
   }
 }
