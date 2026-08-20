@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Cake, User, Lock, ShieldAlert, CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
 import { useAppState } from "@/context/StateContext";
 
-export default function UserLoginPage() {
+function UserLoginPageContent() {
   const { login, roles } = useAppState();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,9 +60,10 @@ export default function UserLoginPage() {
           return;
         }
 
-        setSuccessMessage("You're logged in! Taking you to your dashboard...");
+        const redirectPath = searchParams.get("redirect") || "/";
+        setSuccessMessage("You're logged in! Redirecting...");
         setTimeout(() => {
-          router.push("/");
+          router.push(redirectPath);
         }, 700);
       } else {
         setError("Username or Password incorrect.");
@@ -220,5 +222,17 @@ export default function UserLoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function UserLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-[#2F0538] to-[#1E0124] flex items-center justify-center p-4">
+        <div className="text-white/60 font-semibold animate-pulse">Loading login...</div>
+      </div>
+    }>
+      <UserLoginPageContent />
+    </Suspense>
   );
 }

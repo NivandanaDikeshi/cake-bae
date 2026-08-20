@@ -108,7 +108,7 @@ export default function AboutPage() {
           </motion.div>
 
           <motion.h1 variants={fadeUp} className="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.1]">
-            Our Sweet <span className="italic text-[#9D5CDB]">Story</span>
+            Our Sweet <span className="italic font-medium bg-gradient-to-r from-[#F7F1FB] to-[#9D5CDB] bg-clip-text text-transparent">Story</span>
           </motion.h1>
 
           <motion.p variants={fadeUp} className="text-[#F7F1FB]/85 text-base sm:text-lg font-medium leading-relaxed">

@@ -147,12 +147,20 @@ export default function CheckoutPage() {
         {/* Left: Shipping Form */}
         <div className="lg:col-span-7 space-y-6">
           {!currentUser && (
-            <div className="p-5 bg-amber-50 border border-amber-200/80 text-amber-800 rounded-2xl text-xs sm:text-sm font-medium flex items-start gap-3.5 shadow-xs animate-fade-in">
-              <ShieldAlert className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5 animate-pulse" />
-              <div>
-                <strong className="font-bold block text-amber-900 mb-0.5">Guest Order Warning</strong>
-                You can track orders only if logged into the system. Without login, tracking will not be possible.
+            <div className="p-5 bg-amber-50 border border-amber-200/80 text-amber-800 rounded-2xl text-xs sm:text-sm font-medium flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs animate-fade-in">
+              <div className="flex items-start gap-3.5">
+                <ShieldAlert className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5 animate-pulse" />
+                <div>
+                  <strong className="font-bold block text-amber-900 mb-0.5">Guest Order Warning</strong>
+                  You can track orders only if logged into the system. Without login, tracking will not be possible.
+                </div>
               </div>
+              <Link
+                href="/login?redirect=/checkout"
+                className="inline-flex items-center justify-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm text-center shrink-0 self-start sm:self-center whitespace-nowrap"
+              >
+                Log In
+              </Link>
             </div>
           )}
 

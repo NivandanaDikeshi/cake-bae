@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useAppState } from "@/context/StateContext";
 import { Header } from "@/components/Header";
@@ -16,6 +16,27 @@ import {
   Loader2,
   ArrowRight
 } from "lucide-react";
+
+// Lightweight fallback for environments without framer-motion installed.
+// This shim ignores animation-specific props and renders plain HTML elements.
+const motion: any = new Proxy({}, {
+  get: (_target, tag: string) => (props: any) => {
+    const { children, ...rest } = props || {};
+    // strip animation-related props
+    const { initial, animate, variants, whileHover, whileTap, transition, viewport, whileInView, ...pass } = rest as any;
+    return React.createElement(tag, pass, children);
+  }
+});
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
+};
+
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08 } }
+};
 
 const STEP_CLASSES: Record<string, string> = {
   "Pending": "bg-[#C292F0] text-white",
@@ -337,20 +358,35 @@ export default function OrdersPage() {
 
       <Header />
 
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#2F0538] via-[#1E0124] to-[#4A1054] text-white py-16 sm:py-20">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-[#9D5CDB] filter blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-32 -right-32 w-80 h-80 rounded-full bg-[#9D5CDB] filter blur-3xl animate-pulse"></div>
-        </div>
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm text-[#F7F1FB] font-semibold text-xs tracking-[0.15em] uppercase border border-white/10">
+      {/* Page Hero */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#2F0538] via-[#1E0124] to-[#4A1054] text-white py-20 sm:py-24 text-center">
+        <motion.div
+          className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#9D5CDB] filter blur-3xl opacity-20"
+          animate={{ scale: [1, 1.15, 1] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        <motion.div
+          initial="hidden"
+          animate="show"
+          variants={container}
+          className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 relative z-10 space-y-5"
+        >
+          <motion.div
+            variants={fadeUp}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-[#F7F1FB] font-semibold text-xs tracking-[0.15em] uppercase border border-white/10"
+          >
             <span>Order Ledger</span>
-          </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight mt-4">My Orders</h1>
-          <p className="text-[#F7F1FB]/85 text-sm mt-2">
-            {myOrders.length} order{myOrders.length === 1 ? "" : "s"}
-          </p>
-        </div>
+          </motion.div>
+
+          <motion.h1 variants={fadeUp} className="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.1]">
+            My <span className="italic font-medium bg-gradient-to-r from-[#F7F1FB] to-[#9D5CDB] bg-clip-text text-transparent">Orders</span>
+          </motion.h1>
+
+          <motion.p variants={fadeUp} className="text-[#F7F1FB]/85 text-sm sm:text-base font-medium max-w-xl mx-auto leading-relaxed">
+            You have placed {myOrders.length} order{myOrders.length === 1 ? "" : "s"} with Cake Bae.
+          </motion.p>
+        </motion.div>
       </section>
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-8 relative z-20 pb-20">

@@ -87,6 +87,15 @@ export default function GalleryPage() {
           font-family: "IBM Plex Mono", monospace;
         }
 
+        @keyframes gallery-pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.15); }
+        }
+
+        .gallery-pulse {
+          animation: gallery-pulse 9s ease-in-out infinite;
+        }
+
         /* Slim, unobtrusive horizontal scrollbar for the category filter row */
         .category-filter-row::-webkit-scrollbar {
           height: 4px;
@@ -104,10 +113,7 @@ export default function GalleryPage() {
 
       {/* Page Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#2F0538] via-[#1E0124] to-[#4A1054] text-white py-24 sm:py-32">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#9D5CDB] filter blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-[#9D5CDB] filter blur-3xl animate-pulse"></div>
-        </div>
+        <div className="gallery-pulse absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#9D5CDB] filter blur-3xl opacity-20" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-5">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm text-[#F7F1FB] font-semibold text-xs tracking-[0.15em] uppercase border border-white/10">
             <span>Our Portfolio</span>

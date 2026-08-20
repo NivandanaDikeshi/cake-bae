@@ -6,6 +6,27 @@ import Link from "next/link";
 import { Search, Star, Cake, SlidersHorizontal, RefreshCw, X, ChevronDown, PackageSearch, ChevronRight } from "lucide-react";
 import { useAppState } from "@/context/StateContext";
 
+// Lightweight fallback for environments without framer-motion installed.
+// This shim ignores animation-specific props and renders plain HTML elements.
+const motion: any = new Proxy({}, {
+  get: (_target, tag: string) => (props: any) => {
+    const { children, ...rest } = props || {};
+    // strip animation-related props
+    const { initial, animate, variants, whileHover, whileTap, transition, viewport, whileInView, ...pass } = rest as any;
+    return React.createElement(tag, pass, children);
+  }
+});
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
+};
+
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08 } }
+};
+
 export default function ShopCatalog() {
   const { products, categories } = useAppState();
   const searchParams = useSearchParams();
@@ -81,7 +102,7 @@ export default function ShopCatalog() {
   };
 
   return (
-    <div className="bg-[#F7F1FB] min-h-screen font-body">
+    <div className="bg-[#F7F1FB] min-h-screen font-body overflow-x-hidden">
       <style jsx global>{`
         @import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap");
         .font-display {
@@ -96,52 +117,77 @@ export default function ShopCatalog() {
         }
       `}</style>
 
+      {/* Page Hero */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#2F0538] via-[#1E0124] to-[#4A1054] text-white py-24 sm:py-32">
+        <motion.div
+          className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#9D5CDB] filter blur-3xl opacity-20"
+          animate={{ scale: [1, 1.15, 1] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        <motion.div
+          initial="hidden"
+          animate="show"
+          variants={container}
+          className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-5"
+        >
+          <motion.div
+            variants={fadeUp}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-[#F7F1FB] font-semibold text-xs tracking-[0.15em] uppercase border border-white/10"
+          >
+            <span>Freshly Baked Daily</span>
+          </motion.div>
+
+          <motion.h1 variants={fadeUp} className="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.1]">
+            Shop Our <span className="italic font-medium bg-gradient-to-r from-[#F7F1FB] to-[#9D5CDB] bg-clip-text text-transparent">Cakes &amp; Desserts</span>
+          </motion.h1>
+
+          <motion.p variants={fadeUp} className="text-[#F7F1FB]/85 text-sm sm:text-base font-medium leading-relaxed max-w-xl mx-auto">
+            Handcrafted with premium ingredients and baked fresh for your celebration in Rajagiriya, Colombo and beyond.
+          </motion.p>
+        </motion.div>
+      </section>
+
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
 
-        {/* Header */}
-        <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
-          <div>
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white text-[#9D5CDB] font-bold text-xs tracking-[0.18em] uppercase border border-[#9D5CDB]/20 shadow-sm">
-              <span>Full Collection</span>
-            </div>
-            <h1 className="font-display text-3xl sm:text-4xl font-semibold text-[#2F0538] tracking-tight mt-3">
-              Shop Our Cakes &amp; Desserts
-            </h1>
+        {/* Search & Filter Toolbar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-[#9D5CDB]/15 rounded-2xl p-5 mb-8 shadow-sm">
+          <div className="flex-1 max-w-md relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9D5CDB]/40" />
+            <input
+              type="text"
+              placeholder="Search cakes, flavours, brownies..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-[#F7F1FB]/40 border border-[#9D5CDB]/15 rounded-xl py-2.5 pl-10 pr-9 text-sm text-[#2F0538] placeholder-[#241129]/40 focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/30 focus:border-[#9D5CDB] transition"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9D5CDB]/40 hover:text-[#9D5CDB] transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          {/* Search + mobile filter toggle */}
-          <div className="flex items-center gap-3 w-full lg:w-auto">
-            <div className="relative flex-1 lg:w-80">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9D5CDB]/40" />
-              <input
-                type="text"
-                placeholder="Search cakes, flavours, brownies..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white border border-[#9D5CDB]/20 rounded-xl py-3 pl-10 pr-9 text-sm text-[#2F0538] placeholder-[#241129]/40 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9D5CDB]/30 focus:border-[#9D5CDB] transition"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  aria-label="Clear search"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9D5CDB]/40 hover:text-[#9D5CDB] transition"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileFiltersOpen((v) => !v)}
-              className="lg:hidden inline-flex items-center justify-center gap-2 px-4 py-3 bg-white border border-[#9D5CDB]/20 rounded-xl text-sm font-semibold text-[#2F0538] shadow-sm shrink-0"
+              className="lg:hidden w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-[#9D5CDB]/20 rounded-xl text-sm font-semibold text-[#2F0538] shadow-sm shrink-0"
             >
-              <SlidersHorizontal className="w-4 h-4" />
+              <SlidersHorizontal className="w-4 h-4 text-[#9D5CDB]" />
               <span>Filters</span>
             </button>
+
+            <div className="hidden lg:block text-xs font-semibold text-[#241129]/50">
+              Showing <span className="text-[#9D5CDB] font-bold">{filteredProducts.length}</span> results
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar Filters */}
           <div className={`space-y-6 lg:sticky lg:top-28 self-start ${mobileFiltersOpen ? "block" : "hidden"} lg:block`}>
             {/* Categories Filter */}
@@ -237,11 +283,18 @@ export default function ShopCatalog() {
             </div>
 
             {filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              <motion.div
+                initial="hidden"
+                animate="show"
+                variants={container}
+                className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"
+              >
                 {filteredProducts.map((product) => (
-                  <div
+                  <motion.div
                     key={product.id}
-                    className="group bg-white rounded-2xl border border-[#9D5CDB]/15 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full hover:-translate-y-1"
+                    variants={fadeUp}
+                    whileHover={{ y: -6 }}
+                    className="group bg-white rounded-2xl border border-[#9D5CDB]/15 overflow-hidden shadow-sm hover:shadow-xl hover:border-[#9D5CDB]/30 transition-all duration-300 flex flex-col h-full"
                   >
                     {/* Image */}
                     <div className="relative aspect-square overflow-hidden bg-[#F7F1FB] border-b border-[#9D5CDB]/10">
@@ -274,15 +327,16 @@ export default function ShopCatalog() {
                         </span>
                         <Link
                           href={`/shop/${product.id}`}
-                          className="px-3.5 py-1.5 bg-[#F7F1FB] hover:bg-[#2F0538] hover:text-white text-[#9D5CDB] text-xs font-bold rounded-lg transition-colors duration-300"
+                          className="px-3.5 py-1.5 bg-[#F7F1FB] hover:bg-[#4A1054] hover:text-white text-[#9D5CDB] text-xs font-bold rounded-lg transition-colors duration-300"
                         >
                           <span>Customize</span>
+
                         </Link>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             ) : (
               <div className="text-center py-20 bg-white border border-[#9D5CDB]/15 rounded-2xl space-y-4">
                 <div className="w-16 h-16 rounded-full bg-[#F7F1FB] flex items-center justify-center mx-auto text-[#9D5CDB]/60">
